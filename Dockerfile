@@ -16,6 +16,8 @@ RUN node --max_old_space_size=8192 $(npm bin)/ng build --configuration productio
 FROM nginx
 RUN apt-get update && apt-get install -y curl
 COPY --from=builder /tmp/workspace/dist/pwa/ /usr/share/nginx/html/
+COPY --from=builder /tmp/workspace/set_env.sh .
 RUN chmod -R a+r /usr/share/nginx/html
 
 EXPOSE 80
+ENTRYPOINT ["/bin/sh", "-c", "./set_env.sh && exec nginx -g 'daemon off;'"]
