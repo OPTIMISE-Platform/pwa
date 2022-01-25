@@ -19,3 +19,4 @@
 find '/usr/share/nginx/html' -name '*.js' -exec sed -i -e 's,KEYCLOAK_URL,'"$KEYCLOAK_URL"',g' {} \;
 find '/usr/share/nginx/html' -name '*.js' -exec sed -i -e 's,KEYCLOAK_REALM,'"$KEYCLOAK_REALM"',g' {} \;
 find '/usr/share/nginx/html' -name '*.js' -exec sed -i -e 's,KEYCLOAK_CLIENT_ID,'"$KEYCLOAK_CLIENT_ID"',g' {} \;
+find '/usr/share/nginx/html' -name '*.js' -exec sed -i -e 's,API_URL,'"$API_URL"',g' {} \;
