@@ -14,16 +14,24 @@
  * limitations under the License.
  */
 
-import {NgModule} from '@angular/core';
-import {RouterModule} from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import {AuthorizationService} from "../../services/authorization.service";
 
-const routes =[
-  {path: '', redirectTo: 'devices/list', pathMatch: 'full'},
-];
-
-
-@NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+@Component({
+  selector: 'app-toolbar',
+  templateUrl: './toolbar.component.html',
+  styleUrls: ['./toolbar.component.css']
 })
-export class AppRoutingModule {}
+export class ToolbarComponent implements OnInit {
+  userName = '';
+
+  constructor(private authorizationService: AuthorizationService) { }
+
+  ngOnInit(): void {
+    this.authorizationService.getUserName().then(u => this.userName = u);
+  }
+
+  logout() {
+    this.authorizationService.logout();
+  }
+}

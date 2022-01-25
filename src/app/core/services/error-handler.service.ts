@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
-import {NgModule} from '@angular/core';
-import {RouterModule} from '@angular/router';
+import {Injectable} from '@angular/core';
+import {MatSnackBar} from "@angular/material/snack-bar";
+import {Observable, of} from "rxjs";
 
-const routes =[
-  {path: '', redirectTo: 'devices/list', pathMatch: 'full'},
-];
-
-
-@NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+@Injectable({
+    providedIn: 'root',
 })
-export class AppRoutingModule {}
+export class ErrorHandlerService {
+    constructor(private snackBar: MatSnackBar) {}
+
+  handleError<T>(service: string, method: string, result?: T) {
+    return (error: any): Observable<T> => {
+      console.error('Service: ' + service + ' =>> Method: ' + method);
+      console.error(error);
+
+      this.snackBar.open("An error occurred", "OK", {duration: 2000});
+      return of(result as T);
+    };
+  }
+}

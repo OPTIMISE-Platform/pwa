@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
-import {NgModule} from '@angular/core';
-import {RouterModule} from '@angular/router';
+.fill-remaining-space {
+  flex: 1 1 auto;
+}
 
-const routes =[
-  {path: '', redirectTo: 'devices/list', pathMatch: 'full'},
-];
+.image-wrapper {
+  width: 4em;
+}
 
+.logo {
+  height: 2em;
+  width: 2em;
+  display: block;
+  position: fixed;
+  left: calc(50vw - 1em);
+  top: 0.5em;
+}
 
-@NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
-})
-export class AppRoutingModule {}
+.header-toolbar {
+  position: page;
+}

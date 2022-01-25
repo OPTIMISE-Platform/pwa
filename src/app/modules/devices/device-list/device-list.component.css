@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-import {NgModule} from '@angular/core';
-import {RouterModule} from '@angular/router';
+.mat-list-base .mat-list-item .mat-line:nth-child(n) {
+  font-size: medium;
+  height: 36px;
+}
 
-const routes =[
-  {path: '', redirectTo: 'devices/list', pathMatch: 'full'},
-];
+.indent-1 {
+  text-indent: 1em;
+}
 
+.indent-2 {
+  text-indent: 2em;
+}
 
-@NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
-})
-export class AppRoutingModule {}
+.container {
+  height: calc(100% - 4em);
+  overflow-y: auto;
+}
