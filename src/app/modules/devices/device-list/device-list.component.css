@@ -34,9 +34,23 @@
 
 .right-icon {
   position: relative;
-  left: -1.5em;
+  left: -1.65em;
 }
 
 .disconnected {
-  color: #aeaeae;
+  color: rgb(190 190 190);
+}
+
+.red {
+  color: darkred;
+}
+
+.green {
+  color: darkgreen;
+}
+
+.device-name-label {
+  max-width: 95%;
+  white-space: nowrap;
+  overflow-x: hidden;
 }

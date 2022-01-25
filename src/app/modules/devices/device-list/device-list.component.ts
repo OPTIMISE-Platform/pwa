@@ -19,6 +19,15 @@ import {DeviceInstancesPermSearchModel, DeviceTypeDeviceClassModel, DeviceTypePe
 import {DevicesService} from "../devices.service";
 import {forkJoin, map, Observable} from "rxjs";
 import {PageEvent} from "@angular/material/paginator";
+import {DevicesCommandService} from "../device-command.service";
+import {environment} from "../../../../environments/environment";
+
+export interface CustomDeviceInstance extends DeviceInstancesPermSearchModel {
+  getOnOffServices: string[];
+  setOnServices: string[];
+  setOffServices: string[];
+  onOffStates: (boolean | undefined)[];
+}
 
 @Component({
   selector: 'app-device-list',
@@ -26,7 +35,7 @@ import {PageEvent} from "@angular/material/paginator";
   styleUrls: ['./device-list.component.css']
 })
 export class DeviceListComponent implements OnInit {
-  devices: DeviceInstancesPermSearchModel[] = [];
+  devices: CustomDeviceInstance[] = [];
   classIdToTypeMap: Map<string, DeviceTypePermSearchModel[]> = new Map();
   classIdToClassMap: Map<string, DeviceTypeDeviceClassModel> = new Map();
   typeIdToTypeMap: Map<string, DeviceTypePermSearchModel> = new Map();
@@ -45,12 +54,11 @@ export class DeviceListComponent implements OnInit {
   @ViewChild('list', {read: ElementRef, static: true}) list!: ElementRef;
   constructor(
     private devicesService: DevicesService,
+    private devicesCommandService: DevicesCommandService,
   ) { }
 
   ngOnInit(): void {
-    this.devicesService.getNumberDevicesPerType().subscribe(d => {
-      d.forEach(c => this.maxElements += c.count);
-    })
+    this.devicesService.getTotalNumberDevices().subscribe(d => this.maxElements = d);
     this.buildList().subscribe(_ => this.loadDevices(this.pageSize));
 
   }
@@ -94,7 +102,21 @@ export class DeviceListComponent implements OnInit {
     this.devicesService.getDeviceInstances('',  limit, this.classOffset, 'device_type_id', deviceTypeIds || []).subscribe(devices => {
       if (devices.length > 0) {
         this.classOffset += devices.length;
-        this.devices.push(...devices);
+        devices.forEach(device => {
+          const idx = this.devices.length; // ensures correct position
+          const customDevice = device as CustomDeviceInstance;
+          customDevice.getOnOffServices = [];
+          customDevice.setOnServices = [];
+          customDevice.setOffServices = [];
+          customDevice.onOffStates = [];
+          this.devices.push(customDevice as CustomDeviceInstance); // ensures correct position
+
+          this.devicesCommandService.fillDeviceFunctionServiceIds(customDevice).subscribe(customDevice => {
+            this.devicesCommandService.fillDeviceState(customDevice).subscribe(customDevice => {
+              this.devices[idx] = customDevice;
+            });
+          })
+        })
       }
       if (devices.length < limit) {
         this.classOffset = 0;
@@ -127,13 +149,41 @@ export class DeviceListComponent implements OnInit {
 
   movePage($event: PageEvent) {
     this.lowerOffset = $event.pageIndex * $event.pageSize;
-    this.upperOffset = (($event.pageIndex + 1) * $event.pageSize) - 1;
-    this.loadDevices(this.upperOffset + 1 - this.devices.length);
+    this.upperOffset = (($event.pageIndex + 1) * $event.pageSize);
+    const limit = this.upperOffset - this.devices.length;
+    if (limit > 0) {
+      this.loadDevices(limit);
+    }
   }
 
   getDevices() {
-    return this.devices.slice(this.lowerOffset, Math.min(this.upperOffset, this.devices.length - 1));
+    return this.devices.slice(this.lowerOffset, Math.min(this.upperOffset, this.devices.length));
   }
 
 
+  toggleOnOff(deviceIndex: number, onOffStateIndex: number) {
+    deviceIndex += this.lowerOffset;
+    const device = this.devices[deviceIndex];
+
+    if (device.onOffStates[onOffStateIndex] === undefined) {
+      console.warn("Can't toggle device with unknown status");
+      return;
+    }
+
+    let functionId = '';
+    let serviceId = '';
+    if (device.onOffStates[onOffStateIndex] === true) {
+      functionId = environment.functions.setOff;
+      serviceId = device.setOffServices[onOffStateIndex];
+    } else {
+      functionId = environment.functions.setOn;
+      serviceId = device.setOnServices[onOffStateIndex];
+    }
+    this.devicesCommandService.runCommand(functionId, device.id, serviceId).subscribe(result => {
+      const currentIndex = this.devices.findIndex(x => x.id === device.id); // pagination might have changed this
+      if (currentIndex !== -1) {
+        this.devices[currentIndex].onOffStates[onOffStateIndex] = result as boolean | undefined;
+      }
+    });
+  }
 }

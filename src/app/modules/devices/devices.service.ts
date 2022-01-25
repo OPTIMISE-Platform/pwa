@@ -15,11 +15,16 @@
  */
 
 import {Injectable} from '@angular/core';
-import {catchError, map, Observable, of} from "rxjs";
+import {catchError, map, Observable, of, Subject} from "rxjs";
 import {environment} from "../../../environments/environment";
 import {HttpClient} from "@angular/common/http";
 import {ErrorHandlerService} from "../../core/services/error-handler.service";
-import {DeviceInstancesPermSearchModel, DeviceTypeDeviceClassModel, DeviceTypePermSearchModel} from "./devices.model";
+import {
+  DeviceInstancesPermSearchModel,
+  DeviceTypeDeviceClassModel,
+  DeviceTypeModel,
+  DeviceTypePermSearchModel
+} from "./devices.model";
 
 @Injectable({
   providedIn: 'root'
@@ -27,6 +32,10 @@ import {DeviceInstancesPermSearchModel, DeviceTypeDeviceClassModel, DeviceTypePe
 export class DevicesService {
 
   localstoragePrefixDeviceTypeClass = "deviceTypeClass/"
+  localstoragePrefixDeviceType = "deviceType/"
+
+  getFullDeviceTypeSubjects: Map<string, Subject<DeviceTypeModel>> = new Map();
+
 
   constructor(private http: HttpClient,
               private errorHandlerService: ErrorHandlerService,
@@ -110,13 +119,59 @@ export class DevicesService {
         catchError(this.errorHandlerService.handleError(DevicesService.name, 'getDeviceTypeList', {} as DeviceTypeDeviceClassModel)),);
   }
 
-  getNumberDevicesPerType(): Observable<({ term: string, count: number })[]> {
+  getTotalNumberDevices(): Observable<number> {
     return this.http
-      .get<({ term: string, count: number })[]>(
-        environment.apiUrl + "/permissions/query/v3/aggregates/term/devices/features.device_type_id?limit=9999"
+      .get<number>(
+        environment.apiUrl + "/permissions/query/v3/total/devices"
       ).pipe(
-        map((resp) => resp || []),
-        catchError(this.errorHandlerService.handleError(DevicesService.name, 'getDeviceTypeList', [])),
+        map((resp) => resp || 0),
+        catchError(this.errorHandlerService.handleError(DevicesService.name, 'getDeviceTypeList', 0)),
       )
+  }
+
+
+  getFullDeviceType(id: string): Observable<DeviceTypeModel> {
+    const key = this.localstoragePrefixDeviceType + id;
+
+    let s = this.getFullDeviceTypeSubjects.get(key);
+    if (s !== undefined) {
+      return s;
+    }
+
+    let local = localStorage.getItem(key);
+    if (local !== null) {
+      const localParsed = JSON.parse(local);
+      if ((new Date().valueOf()) < localParsed.expires) {
+        delete localParsed.expires;
+        return of(localParsed);
+      }
+    }
+    s = new Subject<DeviceTypeModel>();
+    this.http.get<DeviceTypeModel | null>(
+      environment.apiUrl + "/device-manager/device-types/" + id
+    ).subscribe(resp => {
+        if (s === undefined) {
+          console.error("subject undefined");
+          return;
+        }
+        this.getFullDeviceTypeSubjects.delete(key);
+        if (resp === null) {
+          s.complete();
+          return;
+        } else {
+          const result = resp as any;
+          const expires = new Date();
+          result.expires = expires.valueOf() + 48 * 60 * 60 * 1000; // cache for two days
+          localStorage.setItem(key, JSON.stringify(result));
+          delete result.expires;
+          s.next(result as DeviceTypeModel);
+          s.complete();
+        }
+      },
+      catchError(this.errorHandlerService.handleError(DevicesService.name, 'getDeviceTypeList', {} as DeviceTypeModel)),
+    );
+
+    this.getFullDeviceTypeSubjects.set(key, s);
+    return s;
   }
 }

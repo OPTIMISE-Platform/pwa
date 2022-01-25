@@ -71,3 +71,87 @@ export interface DeviceTypeDeviceClassModel {
   image: string;
   name: string;
 }
+
+export interface DeviceTypeModel extends DeviceTypeBaseModel {
+  services: DeviceTypeServiceModel[];
+  device_class_id: string;
+}
+
+export interface DeviceTypeServiceModel {
+  id: string;
+  local_id: string;
+  name: string;
+  description: string;
+  aspect_ids: string[];
+  protocol_id: string;
+  interaction: DeviceTypeInteractionEnum | null;
+  inputs: DeviceTypeContentModel[];
+  outputs: DeviceTypeContentModel[];
+  function_ids: string[];
+  attributes?: Attribute[];
+}
+
+export interface DeviceTypeAspectModel {
+  id: string;
+  name: string;
+}
+
+export interface DeviceTypeContentModel {
+  id: string;
+  content_variable: DeviceTypeContentVariableModel;
+  content_variable_raw: string;
+  serialization: string;
+  protocol_segment_id: string;
+  show?: boolean;
+  name?: string;
+}
+
+export interface DeviceTypeContentVariableModel {
+  indices?: number[];
+  id?: string;
+  name?: string;
+  type?: string;
+  characteristic_id?: string;
+  value?: string | boolean | number;
+  sub_content_variables?: DeviceTypeContentVariableModel[];
+  serialization_options: string[];
+  unit_reference?: string;
+}
+
+export interface DeviceTypeConceptModel {
+  id: string;
+  name: string;
+  base_characteristic_id: string;
+  characteristic_ids: string[];
+}
+
+export interface DeviceTypeCharacteristicsModel {
+  id?: string;
+  name: string;
+  type: string;
+  rdf_type?: string;
+  min_value?: number;
+  max_value?: number;
+  value?: string | boolean | number;
+  sub_characteristics?: DeviceTypeCharacteristicsModel[] | null;
+}
+
+export interface DeviceTypeFunctionModel {
+  id: string;
+  name: string;
+  description: string;
+  rdf_type: string;
+  concept_id: string;
+}
+
+export interface DeviceTypeFunctionType {
+  text: string;
+  rdf_type: string;
+  urn_part: string;
+}
+
+export enum DeviceTypeInteractionEnum {
+  Event = 'event',
+  Request = 'request',
+  EventAndRequest = 'event+request',
+}

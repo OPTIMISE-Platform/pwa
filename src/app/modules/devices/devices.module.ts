@@ -25,6 +25,7 @@ import {MatPaginatorModule} from "@angular/material/paginator";
 import {MatSlideToggleModule} from "@angular/material/slide-toggle";
 import {MatTooltipModule} from "@angular/material/tooltip";
 import {FlexModule} from "@angular/flex-layout";
+import {MatButtonModule} from "@angular/material/button";
 
 
 const devices = {path: 'devices/list', pathMatch: 'full', component: DeviceListComponent};
@@ -43,6 +44,7 @@ const devices = {path: 'devices/list', pathMatch: 'full', component: DeviceListC
     MatSlideToggleModule,
     MatTooltipModule,
     FlexModule,
+    MatButtonModule,
   ]
 })
 export class DevicesModule {

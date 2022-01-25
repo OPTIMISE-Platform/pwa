@@ -26,9 +26,23 @@
       <span class="indent-2">{{getTypeHeader(i)}}</span>
     </h4>
   <mat-list-item class="indent-2" [ngClass]="{'disconnected': device.annotations?.connected !== true}">
-    <span fxFlex>{{device.name}}</span>
-    <mat-icon *ngIf="device.annotations?.connected === false" matTooltip="Offline" class="right-icon">cloud_off</mat-icon>
-    <mat-icon *ngIf="device.annotations?.connected === undefined || device.annotations?.connected === null" matTooltip="Status unknown" class="right-icon">question_mark</mat-icon>
+    <span fxFlex class="device-name-label"
+          [matTooltip]="device.name">{{device.name}}</span>
+    <button mat-icon-button disabled *ngIf="device.annotations?.connected === false" matTooltip="Offline">
+      <mat-icon>cloud_off</mat-icon>
+    </button>
+
+      <button mat-icon-button disabled
+              *ngIf="device.annotations?.connected === undefined || device.annotations?.connected === null">
+        <mat-icon matTooltip="Status unknown">question_mark</mat-icon>
+      </button>
+
+    <span *ngIf="device.getOnOffServices.length > 0 && device.annotations?.connected === true">
+      <button mat-icon-button *ngFor="let state of device.onOffStates; let onOffStateIndex = index"
+              (click)="toggleOnOff(i, onOffStateIndex)" [disabled]="state === undefined">
+        <mat-icon [ngClass]="{'red': state === false, 'green': state === true}">offline_bolt</mat-icon>
+      </button>
+    </span>
   </mat-list-item>
   </span>
   </mat-list>
