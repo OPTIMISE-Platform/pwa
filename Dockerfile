@@ -17,6 +17,7 @@ FROM nginx
 RUN apt-get update && apt-get install -y curl
 COPY --from=builder /tmp/workspace/dist/pwa/ /usr/share/nginx/html/
 COPY --from=builder /tmp/workspace/set_env.sh .
+ADD nginx-custom.conf /etc/nginx/conf.d/default.conf
 RUN chmod -R a+r /usr/share/nginx/html
 
 EXPOSE 80
