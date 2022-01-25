@@ -36,7 +36,7 @@ export class DeviceListComponent implements OnInit {
 
   lastPageEvent: PageEvent | undefined;
 
-  pageSize = 50;
+  pageSize = 20;
   maxElements = 0;
   lowerOffset = 0;
   upperOffset = this.pageSize - 1;

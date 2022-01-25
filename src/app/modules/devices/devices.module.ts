@@ -22,6 +22,9 @@ import {HttpClientModule} from "@angular/common/http";
 import {MatListModule} from "@angular/material/list";
 import {MatIconModule} from "@angular/material/icon";
 import {MatPaginatorModule} from "@angular/material/paginator";
+import {MatSlideToggleModule} from "@angular/material/slide-toggle";
+import {MatTooltipModule} from "@angular/material/tooltip";
+import {FlexModule} from "@angular/flex-layout";
 
 
 const devices = {path: 'devices/list', pathMatch: 'full', component: DeviceListComponent};
@@ -37,6 +40,9 @@ const devices = {path: 'devices/list', pathMatch: 'full', component: DeviceListC
     MatListModule,
     MatIconModule,
     MatPaginatorModule,
+    MatSlideToggleModule,
+    MatTooltipModule,
+    FlexModule,
   ]
 })
 export class DevicesModule {
