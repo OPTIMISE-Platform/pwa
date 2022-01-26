@@ -41,7 +41,7 @@
         <mat-icon matTooltip="Status unknown">question_mark</mat-icon>
       </button>
 
-    <span *ngIf="device.getOnOffServices.length > 0 && device.annotations?.connected === true">
+    <span *ngIf="device.getOnOffServices.length === 1 && device.annotations?.connected === true"> <!-- TODO hidden if more than one onOffService -->
       <button mat-icon-button *ngFor="let state of device.onOffStates; let onOffStateIndex = index"
               (click)="toggleOnOff(i, onOffStateIndex)" [disabled]="state === undefined">
         <mat-icon [ngClass]="{'red': state === 'off', 'green': state === 'on'}">offline_bolt</mat-icon>
