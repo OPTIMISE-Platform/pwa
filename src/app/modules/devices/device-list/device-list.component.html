@@ -14,7 +14,11 @@
   ~ limitations under the License.
   -->
 
-<div class="container">
+<div class="container" (scroll)="scrolled($event)" fxLayout="column">
+    <mat-form-field appearance="standard" class="search" [fxShow]="searchOpen">
+      <input matInput placeholder="Search" #searchInput [formControl]="searchFormControl">
+      <mat-icon matSuffix (click)="cancelSearch()" class="cancel-search">clear</mat-icon>
+    </mat-form-field>
   <mat-list>
   <span *ngFor="let device of getDevices(); trackBy:getDeviceId; let i = index">
     <h3 matSubheader *ngIf="needsClassHeader(i)">
@@ -40,7 +44,7 @@
     <span *ngIf="device.getOnOffServices.length > 0 && device.annotations?.connected === true">
       <button mat-icon-button *ngFor="let state of device.onOffStates; let onOffStateIndex = index"
               (click)="toggleOnOff(i, onOffStateIndex)" [disabled]="state === undefined">
-        <mat-icon [ngClass]="{'red': state === false, 'green': state === true}">offline_bolt</mat-icon>
+        <mat-icon [ngClass]="{'red': state === 'off', 'green': state === 'on'}">offline_bolt</mat-icon>
       </button>
     </span>
   </mat-list-item>
@@ -49,6 +53,12 @@
   <mat-paginator [length]="maxElements"
                  [pageSize]="pageSize"
                  (page)="movePage($event)"
+                 #paginator
                  aria-label="Select page">
   </mat-paginator>
+  <div class="fab" [fxShow]="scrollPercentage < 20 && !searchOpen">
+    <button mat-fab color="accent" (click)="openSearch()">
+      <mat-icon>search</mat-icon>
+    </button>
+  </div>
 </div>

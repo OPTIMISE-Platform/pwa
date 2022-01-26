@@ -54,3 +54,21 @@
   white-space: nowrap;
   overflow-x: hidden;
 }
+
+.fab {
+  position: fixed;
+  bottom: 15px;
+  right: 15px;
+  z-index: 100;
+}
+
+.search {
+  padding-left: 1em;
+  padding-right: 1em;
+}
+
+.cancel-search {
+  position: relative;
+  top: .375em;
+  right: .375em;
+}

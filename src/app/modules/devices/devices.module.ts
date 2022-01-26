@@ -24,8 +24,11 @@ import {MatIconModule} from "@angular/material/icon";
 import {MatPaginatorModule} from "@angular/material/paginator";
 import {MatSlideToggleModule} from "@angular/material/slide-toggle";
 import {MatTooltipModule} from "@angular/material/tooltip";
-import {FlexModule} from "@angular/flex-layout";
+import {FlexLayoutModule, FlexModule} from "@angular/flex-layout";
 import {MatButtonModule} from "@angular/material/button";
+import {MatFormFieldModule} from "@angular/material/form-field";
+import {MatInputModule} from "@angular/material/input";
+import {ReactiveFormsModule} from "@angular/forms";
 
 
 const devices = {path: 'devices/list', pathMatch: 'full', component: DeviceListComponent};
@@ -45,6 +48,10 @@ const devices = {path: 'devices/list', pathMatch: 'full', component: DeviceListC
     MatTooltipModule,
     FlexModule,
     MatButtonModule,
+    FlexLayoutModule,
+    MatFormFieldModule,
+    MatInputModule,
+    ReactiveFormsModule,
   ]
 })
 export class DevicesModule {

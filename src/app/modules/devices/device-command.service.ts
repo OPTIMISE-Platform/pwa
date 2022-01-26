@@ -75,6 +75,11 @@ export class DevicesCommandService {
       input,
       device_id: deviceId,
       service_id: serviceId,
-    }).pipe(timeout(15000), catchError(this.errorHandlerService.handleError(DevicesService.name, 'runCommand', undefined)));
+    }).pipe(timeout(15000), map(v => {
+      if (Array.isArray(v) && v.length === 1) {
+        return v[0];
+      }
+      return v;
+    }),catchError(this.errorHandlerService.handleError(DevicesService.name, 'runCommand', undefined)));
   }
 }

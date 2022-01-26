@@ -17,16 +17,18 @@
 import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {DeviceInstancesPermSearchModel, DeviceTypeDeviceClassModel, DeviceTypePermSearchModel} from "../devices.model";
 import {DevicesService} from "../devices.service";
-import {forkJoin, map, Observable} from "rxjs";
-import {PageEvent} from "@angular/material/paginator";
+import {debounceTime, forkJoin, map, Observable} from "rxjs";
+import {MatPaginator, PageEvent} from "@angular/material/paginator";
 import {DevicesCommandService} from "../device-command.service";
 import {environment} from "../../../../environments/environment";
+import {Scroll} from "@angular/router";
+import {FormControl} from "@angular/forms";
 
 export interface CustomDeviceInstance extends DeviceInstancesPermSearchModel {
   getOnOffServices: string[];
   setOnServices: string[];
   setOffServices: string[];
-  onOffStates: (boolean | undefined)[];
+  onOffStates: (string | undefined)[];
 }
 
 @Component({
@@ -50,8 +52,12 @@ export class DeviceListComponent implements OnInit {
   lowerOffset = 0;
   upperOffset = this.pageSize - 1;
 
+  scrollPercentage = 0;
+  searchOpen = false;
+  searchFormControl = new FormControl();
 
-  @ViewChild('list', {read: ElementRef, static: true}) list!: ElementRef;
+  @ViewChild('searchInput', {static: true}) searchInput!: ElementRef;
+  @ViewChild('paginator', {static: true}) paginator!: MatPaginator;
   constructor(
     private devicesService: DevicesService,
     private devicesCommandService: DevicesCommandService,
@@ -60,7 +66,16 @@ export class DeviceListComponent implements OnInit {
   ngOnInit(): void {
     this.devicesService.getTotalNumberDevices().subscribe(d => this.maxElements = d);
     this.buildList().subscribe(_ => this.loadDevices(this.pageSize));
-
+    this.searchFormControl.valueChanges.pipe(debounceTime(300)).subscribe(value => {
+      this.paginator.firstPage();
+      this.devices = [];
+      this.lowerOffset = 0;
+      this.upperOffset = this.pageSize - 1;
+      this.deviceClassIdArrIndex = 0;
+      this.classOffset = 0;
+      this.loadDevices(this.pageSize);
+      this.devicesService.getTotalNumberDevices(value).subscribe(d => this.maxElements = d);
+    });
   }
 
   getDeviceId(d: any) {
@@ -99,7 +114,7 @@ export class DeviceListComponent implements OnInit {
       return; // list exhausted
     }
     const deviceTypeIds = this.classIdToTypeMap.get(this.deviceClassIdArr[this.deviceClassIdArrIndex])?.map(x => x.id);
-    this.devicesService.getDeviceInstances('',  limit, this.classOffset, 'device_type_id', deviceTypeIds || []).subscribe(devices => {
+    this.devicesService.getDeviceInstances(this.searchFormControl.value,  limit, this.classOffset, 'device_type_id', deviceTypeIds || []).subscribe(devices => {
       if (devices.length > 0) {
         this.classOffset += devices.length;
         devices.forEach(device => {
@@ -165,25 +180,39 @@ export class DeviceListComponent implements OnInit {
     deviceIndex += this.lowerOffset;
     const device = this.devices[deviceIndex];
 
-    if (device.onOffStates[onOffStateIndex] === undefined) {
+    if (device.onOffStates[onOffStateIndex] === undefined) { // TODO I dont now, if getOnOff and setOn/Off are related
       console.warn("Can't toggle device with unknown status");
       return;
     }
 
     let functionId = '';
     let serviceId = '';
-    if (device.onOffStates[onOffStateIndex] === true) {
+    if (device.onOffStates[onOffStateIndex] === 'on') { // TODO
       functionId = environment.functions.setOff;
-      serviceId = device.setOffServices[onOffStateIndex];
+      serviceId = device.setOffServices[onOffStateIndex]; // TODO
     } else {
       functionId = environment.functions.setOn;
-      serviceId = device.setOnServices[onOffStateIndex];
+      serviceId = device.setOnServices[onOffStateIndex]; // TODO
     }
     this.devicesCommandService.runCommand(functionId, device.id, serviceId).subscribe(result => {
       const currentIndex = this.devices.findIndex(x => x.id === device.id); // pagination might have changed this
       if (currentIndex !== -1) {
-        this.devices[currentIndex].onOffStates[onOffStateIndex] = result as boolean | undefined;
+        this.devices[currentIndex].onOffStates[onOffStateIndex] = result as string | undefined; // TODO
       }
     });
+  }
+
+  scrolled($event: any) {
+    this.scrollPercentage = ($event.target.scrollTop / $event.target.offsetHeight) * 100;
+  }
+
+  openSearch() {
+    this.searchOpen = true;
+    setTimeout(() => this.searchInput.nativeElement.focus(), 100); // delay until element shown
+  }
+
+  cancelSearch() {
+    this.searchFormControl.setValue('');
+    this.searchOpen = false;
   }
 }

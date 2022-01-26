@@ -57,6 +57,7 @@ export class DevicesService {
           limit: limit,
           offset: offset,
           sortBy: sortBy,
+          search: searchText,
           filter: {
             condition: {
               feature: "features.device_type_id",
@@ -119,10 +120,11 @@ export class DevicesService {
         catchError(this.errorHandlerService.handleError(DevicesService.name, 'getDeviceTypeList', {} as DeviceTypeDeviceClassModel)),);
   }
 
-  getTotalNumberDevices(): Observable<number> {
+  getTotalNumberDevices(searchText: string = ''): Observable<number> {
     return this.http
       .get<number>(
         environment.apiUrl + "/permissions/query/v3/total/devices"
+        + (searchText.length > 0 ? ('?search=' + searchText): '')
       ).pipe(
         map((resp) => resp || 0),
         catchError(this.errorHandlerService.handleError(DevicesService.name, 'getDeviceTypeList', 0)),
