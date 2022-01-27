@@ -29,30 +29,35 @@ import {MatButtonModule} from "@angular/material/button";
 import {MatFormFieldModule} from "@angular/material/form-field";
 import {MatInputModule} from "@angular/material/input";
 import {ReactiveFormsModule} from "@angular/forms";
+import {DeviceDetailsComponent} from "./device-details/device-details.component";
+import {MatCardModule} from "@angular/material/card";
 
 
-const devices = {path: 'devices/list', pathMatch: 'full', component: DeviceListComponent};
+const devices = {path: 'devices', pathMatch: 'full', component: DeviceListComponent, data: {animation: 'devices'}};
+const deviceDetails = {path: 'devices/:id', pathMatch: 'full', component: DeviceDetailsComponent, data: {animation: 'device-details'}};
 
 @NgModule({
   declarations: [
     DeviceListComponent,
+    DeviceDetailsComponent,
   ],
-  imports: [
-    RouterModule.forChild([devices]),
-    CommonModule,
-    HttpClientModule,
-    MatListModule,
-    MatIconModule,
-    MatPaginatorModule,
-    MatSlideToggleModule,
-    MatTooltipModule,
-    FlexModule,
-    MatButtonModule,
-    FlexLayoutModule,
-    MatFormFieldModule,
-    MatInputModule,
-    ReactiveFormsModule,
-  ]
+    imports: [
+        RouterModule.forChild([devices, deviceDetails]),
+        CommonModule,
+        HttpClientModule,
+        MatListModule,
+        MatIconModule,
+        MatPaginatorModule,
+        MatSlideToggleModule,
+        MatTooltipModule,
+        FlexModule,
+        MatButtonModule,
+        FlexLayoutModule,
+        MatFormFieldModule,
+        MatInputModule,
+        ReactiveFormsModule,
+        MatCardModule,
+    ],
 })
 export class DevicesModule {
 }

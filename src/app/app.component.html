@@ -15,4 +15,7 @@
   -->
 
 <app-toolbar></app-toolbar>
-<router-outlet></router-outlet>
+<span [@routeAnimations]="o && o.activatedRouteData
+      && o.activatedRouteData['animation']">
+  <router-outlet #o="outlet"></router-outlet>
+</span>

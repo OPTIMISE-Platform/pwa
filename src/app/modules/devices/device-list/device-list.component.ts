@@ -15,21 +15,16 @@
  */
 
 import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
-import {DeviceInstancesPermSearchModel, DeviceTypeDeviceClassModel, DeviceTypePermSearchModel} from "../devices.model";
+import {CustomDeviceInstance} from "../devices.model";
 import {DevicesService} from "../devices.service";
 import {debounceTime, forkJoin, map, Observable} from "rxjs";
 import {MatPaginator, PageEvent} from "@angular/material/paginator";
 import {DevicesCommandService} from "../device-command.service";
 import {environment} from "../../../../environments/environment";
-import {Scroll} from "@angular/router";
+import {Router} from "@angular/router";
 import {FormControl} from "@angular/forms";
+import {getEmptyState, SharedStateModel} from "../state.model";
 
-export interface CustomDeviceInstance extends DeviceInstancesPermSearchModel {
-  getOnOffServices: string[];
-  setOnServices: string[];
-  setOffServices: string[];
-  onOffStates: (string | undefined)[];
-}
 
 @Component({
   selector: 'app-device-list',
@@ -37,18 +32,9 @@ export interface CustomDeviceInstance extends DeviceInstancesPermSearchModel {
   styleUrls: ['./device-list.component.css']
 })
 export class DeviceListComponent implements OnInit {
-  devices: CustomDeviceInstance[] = [];
-  classIdToTypeMap: Map<string, DeviceTypePermSearchModel[]> = new Map();
-  classIdToClassMap: Map<string, DeviceTypeDeviceClassModel> = new Map();
-  typeIdToTypeMap: Map<string, DeviceTypePermSearchModel> = new Map();
-  deviceClassIdArr: string[] = [];
-  deviceClassIdArrIndex = 0;
-  classOffset = 0;
-
-  lastPageEvent: PageEvent | undefined;
+  state: SharedStateModel;
 
   pageSize = 20;
-  maxElements = 0;
   lowerOffset = 0;
   upperOffset = this.pageSize - 1;
 
@@ -61,21 +47,35 @@ export class DeviceListComponent implements OnInit {
   constructor(
     private devicesService: DevicesService,
     private devicesCommandService: DevicesCommandService,
-  ) { }
+    private router: Router,
+  ) {
+    this.state = (this.router.getCurrentNavigation()?.extras?.state || [])['state'];
+  }
 
   ngOnInit(): void {
-    this.devicesService.getTotalNumberDevices().subscribe(d => this.maxElements = d);
-    this.buildList().subscribe(_ => this.loadDevices(this.pageSize));
-    this.searchFormControl.valueChanges.pipe(debounceTime(300)).subscribe(value => {
-      this.paginator.firstPage();
-      this.devices = [];
-      this.lowerOffset = 0;
-      this.upperOffset = this.pageSize - 1;
-      this.deviceClassIdArrIndex = 0;
-      this.classOffset = 0;
-      this.loadDevices(this.pageSize);
-      this.devicesService.getTotalNumberDevices(value).subscribe(d => this.maxElements = d);
-    });
+    if (this.state !== undefined) {
+      this.paginator.pageIndex = this.state.page;
+      this.movePage({pageIndex: this.state.page, pageSize: this.pageSize} as PageEvent);
+    } else {
+      this.state = getEmptyState();
+      this.devicesService.getTotalNumberDevices(this.searchFormControl.value).subscribe(d => this.state.maxElements = d);
+      this.reset();
+      this.buildList().subscribe(_ => this.loadDevices(this.pageSize));
+      this.searchFormControl.valueChanges.pipe(debounceTime(300)).subscribe(value => {
+        this.reset();
+        this.loadDevices(this.pageSize);
+        this.devicesService.getTotalNumberDevices(value).subscribe(d => this.state.maxElements = d);
+      });
+    }
+  }
+
+  reset() {
+    this.paginator.firstPage();
+    this.state.devices = [];
+    this.lowerOffset = 0;
+    this.upperOffset = this.pageSize - 1;
+    this.state.deviceClassIdArrIndex = 0;
+    this.state.classOffset = 0;
   }
 
   getDeviceId(d: any) {
@@ -86,16 +86,16 @@ export class DeviceListComponent implements OnInit {
     return new Observable<null>(obs => {
       this.devicesService.getDeviceTypeList(9999, 0, "name", "asc").subscribe(deviceTypes => {
         deviceTypes.forEach(deviceType => {
-          if (!this.classIdToTypeMap.has(deviceType.device_class_id)) {
-            this.classIdToTypeMap.set(deviceType.device_class_id, []);
-            this.deviceClassIdArr.push(deviceType.device_class_id);
+          if (!this.state.classIdToTypeMap.has(deviceType.device_class_id)) {
+            this.state.classIdToTypeMap.set(deviceType.device_class_id, []);
+            this.state.deviceClassIdArr.push(deviceType.device_class_id);
           }
-          this.classIdToTypeMap.get(deviceType.device_class_id)?.push(deviceType);
-          this.typeIdToTypeMap.set(deviceType.id, deviceType);
+          this.state.classIdToTypeMap.get(deviceType.device_class_id)?.push(deviceType);
+          this.state.typeIdToTypeMap.set(deviceType.id, deviceType);
         });
         const obsList: Observable<any>[] = [];
-        this.classIdToTypeMap.forEach((_, id) => {
-          obsList.push(this.devicesService.getDeviceTypeClass(id).pipe(map(deviceTypeDeviceClass => this.classIdToClassMap.set(id, deviceTypeDeviceClass))));
+        this.state.classIdToTypeMap.forEach((_, id) => {
+          obsList.push(this.devicesService.getDeviceTypeClass(id).pipe(map(deviceTypeDeviceClass => this.state.classIdToClassMap.set(id, deviceTypeDeviceClass))));
         });
         if (obsList.length === 0) {
           obs.complete();
@@ -110,32 +110,27 @@ export class DeviceListComponent implements OnInit {
   }
 
   loadDevices(limit: number) {
-    if (this.deviceClassIdArrIndex >= this.deviceClassIdArr.length) {
+    if (this.state.deviceClassIdArrIndex >= this.state.deviceClassIdArr.length) {
       return; // list exhausted
     }
-    const deviceTypeIds = this.classIdToTypeMap.get(this.deviceClassIdArr[this.deviceClassIdArrIndex])?.map(x => x.id);
-    this.devicesService.getDeviceInstances(this.searchFormControl.value,  limit, this.classOffset, 'device_type_id', deviceTypeIds || []).subscribe(devices => {
+    const deviceTypeIds = this.state.classIdToTypeMap.get(this.state.deviceClassIdArr[this.state.deviceClassIdArrIndex])?.map(x => x.id);
+    this.devicesService.getDeviceInstances(this.searchFormControl.value,  limit, this.state.classOffset, 'device_type_id', deviceTypeIds || []).subscribe(devices => {
       if (devices.length > 0) {
-        this.classOffset += devices.length;
+        this.state.classOffset += devices.length;
         devices.forEach(device => {
-          const idx = this.devices.length; // ensures correct position
-          const customDevice = device as CustomDeviceInstance;
-          customDevice.getOnOffServices = [];
-          customDevice.setOnServices = [];
-          customDevice.setOffServices = [];
-          customDevice.onOffStates = [];
-          this.devices.push(customDevice as CustomDeviceInstance); // ensures correct position
-
+          const idx = this.state.devices.length; // ensures correct position
+          const customDevice = this.devicesService.permInstanceToCustom(device);
+          this.state.devices.push(customDevice as CustomDeviceInstance); // ensures correct position
           this.devicesCommandService.fillDeviceFunctionServiceIds(customDevice).subscribe(customDevice => {
             this.devicesCommandService.fillDeviceState(customDevice).subscribe(customDevice => {
-              this.devices[idx] = customDevice;
+              this.state.devices[idx] = customDevice;
             });
           })
         })
       }
       if (devices.length < limit) {
-        this.classOffset = 0;
-        this.deviceClassIdArrIndex++;
+        this.state.classOffset = 0;
+        this.state.deviceClassIdArrIndex++;
         this.loadDevices(limit - devices.length); // try with next device class
       }
     });
@@ -144,41 +139,42 @@ export class DeviceListComponent implements OnInit {
 
   needsClassHeader(i: number): boolean {
     i += this.lowerOffset;
-    return i === this.lowerOffset || this.typeIdToTypeMap.get(this.devices[i].device_type_id)?.device_class_id !== this.typeIdToTypeMap.get(this.devices[i-1].device_type_id)?.device_class_id;
+    return i === this.lowerOffset || this.state.typeIdToTypeMap.get(this.state.devices[i].device_type_id)?.device_class_id !== this.state.typeIdToTypeMap.get(this.state.devices[i-1].device_type_id)?.device_class_id;
   }
 
   getClassHeader(i: number) {
     i += this.lowerOffset;
-    return this.classIdToClassMap.get(this.typeIdToTypeMap.get(this.devices[i].device_type_id)?.device_class_id || '')?.name;
+    return this.state.classIdToClassMap.get(this.state.typeIdToTypeMap.get(this.state.devices[i].device_type_id)?.device_class_id || '')?.name;
   }
 
   needsTypeHeader(i: number): boolean {
     i += this.lowerOffset;
-    return i === this.lowerOffset || this.devices[i].device_type_id !== this.devices[i-1].device_type_id;
+    return i === this.lowerOffset || this.state.devices[i].device_type_id !== this.state.devices[i-1].device_type_id;
   }
 
   getTypeHeader(i: number) {
     i += this.lowerOffset;
-    return this.typeIdToTypeMap.get(this.devices[i].device_type_id)?.name;
+    return this.state.typeIdToTypeMap.get(this.state.devices[i].device_type_id)?.name;
   }
 
   movePage($event: PageEvent) {
     this.lowerOffset = $event.pageIndex * $event.pageSize;
     this.upperOffset = (($event.pageIndex + 1) * $event.pageSize);
-    const limit = this.upperOffset - this.devices.length;
+    const limit = this.upperOffset - this.state.devices.length;
     if (limit > 0) {
       this.loadDevices(limit);
     }
+    this.state.page = $event.pageIndex;
   }
 
   getDevices() {
-    return this.devices.slice(this.lowerOffset, Math.min(this.upperOffset, this.devices.length));
+    return this.state.devices.slice(this.lowerOffset, Math.min(this.upperOffset, this.state.devices.length));
   }
 
 
   toggleOnOff(deviceIndex: number, onOffStateIndex: number) {
     deviceIndex += this.lowerOffset;
-    const device = this.devices[deviceIndex];
+    const device = this.state.devices[deviceIndex];
 
     if (device.onOffStates[onOffStateIndex] === undefined) { // TODO I dont now, if getOnOff and setOn/Off are related
       console.warn("Can't toggle device with unknown status");
@@ -187,7 +183,7 @@ export class DeviceListComponent implements OnInit {
 
     let functionId = '';
     let serviceId = '';
-    if (device.onOffStates[onOffStateIndex] === 'on') { // TODO
+    if (device.onOffStates[onOffStateIndex] === true) { // TODO
       functionId = environment.functions.setOff;
       serviceId = device.setOffServices[onOffStateIndex]; // TODO
     } else {
@@ -195,9 +191,9 @@ export class DeviceListComponent implements OnInit {
       serviceId = device.setOnServices[onOffStateIndex]; // TODO
     }
     this.devicesCommandService.runCommand(functionId, device.id, serviceId).subscribe(result => {
-      const currentIndex = this.devices.findIndex(x => x.id === device.id); // pagination might have changed this
+      const currentIndex = this.state.devices.findIndex(x => x.id === device.id); // pagination might have changed this
       if (currentIndex !== -1) {
-        this.devices[currentIndex].onOffStates[onOffStateIndex] = result as string | undefined; // TODO
+        this.state.devices[currentIndex].onOffStates[onOffStateIndex] = result as boolean | undefined; // TODO
       }
     });
   }
@@ -214,5 +210,11 @@ export class DeviceListComponent implements OnInit {
   cancelSearch() {
     this.searchFormControl.setValue('');
     this.searchOpen = false;
+  }
+
+  openDetails(device: CustomDeviceInstance) {
+    this.state.device = device;
+
+    this.router.navigate(['devices/' + device.id], {state: {'state': this.state}});
   }
 }

@@ -30,7 +30,7 @@
       <span class="indent-2">{{getTypeHeader(i)}}</span>
     </h4>
   <mat-list-item class="indent-2" [ngClass]="{'disconnected': device.annotations?.connected !== true}">
-    <span fxFlex class="device-name-label"
+    <span fxFlex class="device-name-label" (click)="openDetails(device)"
           [matTooltip]="device.name">{{device.name}}</span>
     <button mat-icon-button disabled *ngIf="device.annotations?.connected === false" matTooltip="Offline">
       <mat-icon>cloud_off</mat-icon>
@@ -44,15 +44,16 @@
     <span *ngIf="device.getOnOffServices.length === 1 && device.annotations?.connected === true"> <!-- TODO hidden if more than one onOffService -->
       <button mat-icon-button *ngFor="let state of device.onOffStates; let onOffStateIndex = index"
               (click)="toggleOnOff(i, onOffStateIndex)" [disabled]="state === undefined">
-        <mat-icon [ngClass]="{'red': state === 'off', 'green': state === 'on'}">offline_bolt</mat-icon>
+        <mat-icon [ngClass]="{'red': !state, 'green': state}">offline_bolt</mat-icon>
       </button>
     </span>
   </mat-list-item>
   </span>
   </mat-list>
-  <mat-paginator [length]="maxElements"
+  <mat-paginator [length]="state.maxElements"
                  [pageSize]="pageSize"
                  (page)="movePage($event)"
+                 hidePageSize
                  #paginator
                  aria-label="Select page">
   </mat-paginator>

@@ -20,6 +20,7 @@ import {environment} from "../../../environments/environment";
 import {HttpClient} from "@angular/common/http";
 import {ErrorHandlerService} from "../../core/services/error-handler.service";
 import {
+  CustomDeviceInstance,
   DeviceInstancesPermSearchModel,
   DeviceTypeDeviceClassModel,
   DeviceTypeModel,
@@ -73,6 +74,16 @@ export class DevicesService {
     );
   }
 
+  getDeviceInstance(id: string): Observable<DeviceInstancesPermSearchModel> {
+    return this.http.get<DeviceInstancesPermSearchModel[]>(
+      environment.apiUrl + "/permissions/query/v3/resources/devices?ids=" + id,
+    ).pipe(
+      map((resp) => resp || []),
+      map(resp => resp[0]),
+      catchError(this.errorHandlerService.handleError(DevicesService.name, 'getDeviceInstances', {} as DeviceInstancesPermSearchModel)),
+    );
+  }
+
   getDeviceTypeList(limit: number,
                     offset: number,
                     sortBy: string,
@@ -120,11 +131,11 @@ export class DevicesService {
         catchError(this.errorHandlerService.handleError(DevicesService.name, 'getDeviceTypeList', {} as DeviceTypeDeviceClassModel)),);
   }
 
-  getTotalNumberDevices(searchText: string = ''): Observable<number> {
+  getTotalNumberDevices(searchText: string|null = ''): Observable<number> {
     return this.http
       .get<number>(
         environment.apiUrl + "/permissions/query/v3/total/devices"
-        + (searchText.length > 0 ? ('?search=' + searchText): '')
+        + (searchText !== null && searchText.length > 0 ? ('?search=' + searchText): '')
       ).pipe(
         map((resp) => resp || 0),
         catchError(this.errorHandlerService.handleError(DevicesService.name, 'getDeviceTypeList', 0)),
@@ -175,5 +186,14 @@ export class DevicesService {
 
     this.getFullDeviceTypeSubjects.set(key, s);
     return s;
+  }
+
+  permInstanceToCustom(device: DeviceInstancesPermSearchModel): CustomDeviceInstance {
+    const customDevice = device as CustomDeviceInstance;
+    customDevice.getOnOffServices = [];
+    customDevice.setOnServices = [];
+    customDevice.setOffServices = [];
+    customDevice.onOffStates = [];
+    return customDevice;
   }
 }

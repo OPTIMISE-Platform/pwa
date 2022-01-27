@@ -20,7 +20,7 @@ import {environment} from "../../../environments/environment";
 import {HttpClient} from "@angular/common/http";
 import {ErrorHandlerService} from "../../core/services/error-handler.service";
 import {DevicesService} from "./devices.service";
-import {CustomDeviceInstance} from "./device-list/device-list.component";
+import {CustomDeviceInstance} from "./devices.model";
 
 @Injectable({
   providedIn: 'root'
@@ -54,6 +54,11 @@ export class DevicesCommandService {
      return {function: environment.functions.getOnOff, value};
     }))));
 
+
+    if (obs.length === 0) {
+      return of(device);
+    }
+
     return forkJoin(obs).pipe(map(results => {
       results.forEach(result => {
         switch(result.function) {
@@ -75,7 +80,7 @@ export class DevicesCommandService {
       input,
       device_id: deviceId,
       service_id: serviceId,
-    }).pipe(timeout(15000), map(v => {
+    }).pipe(timeout(30000), map(v => {
       if (Array.isArray(v) && v.length === 1) {
         return v[0];
       }

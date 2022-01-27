@@ -14,24 +14,48 @@
  * limitations under the License.
  */
 
-.fill-remaining-space {
-  flex: 1 1 auto;
+.container {
+  height: calc(100% - 4em);
+  overflow-y: auto;
 }
 
-.image-wrapper {
-  width: 4em;
+::ng-deep .mat-card-header-text {
+  max-width: calc(100% - 80px - 4em);
+  word-break: break-word;
 }
 
-.logo {
-  height: 2em;
-  width: 2em;
-  display: block;
+.mat-card-avatar {
+  background-color: #6C6C6C;
+  height: 80px;
+  width: 80px;
+}
+
+.back-button-container {
+  width: 100%;
+  height: 2.5em;
   position: fixed;
-  left: calc(50vw - 1em);
-  top: 0.5em;
+  bottom: 0;
+  z-index: 99;
+  background-color: white;
 }
 
-.header-toolbar {
-  position:  sticky;
-  z-index: 99;
+.back-button {
+  left: calc(50vw - 1.25em);
+  position: fixed;
+  bottom: 0.25em;
+}
+
+.status-icon {
+  vertical-align: middle;
+  font-size: 1.5em;
+  position: absolute;
+  right: 1em;
+}
+
+.red {
+  color: darkred;
+}
+
+.green {
+  color: darkgreen;
 }

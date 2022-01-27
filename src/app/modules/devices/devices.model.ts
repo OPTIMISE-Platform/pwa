@@ -14,6 +14,13 @@
  * limitations under the License.
  */
 
+export interface CustomDeviceInstance extends DeviceInstancesPermSearchModel {
+  getOnOffServices: string[];
+  setOnServices: string[];
+  setOffServices: string[];
+  onOffStates: (boolean | undefined)[];
+}
+
 export interface DeviceTypeBaseModel {
   id: string;
   name: string;
