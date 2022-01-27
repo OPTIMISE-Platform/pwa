@@ -190,10 +190,10 @@ export class DeviceListComponent implements OnInit {
     let serviceId = '';
     if (device.onOffStates[onOffStateIndex] === true) { // TODO
       functionId = environment.functions.setOff;
-      serviceId = device.setOffServices[onOffStateIndex]; // TODO
+      serviceId = device.setOffServices[onOffStateIndex].id; // TODO
     } else {
       functionId = environment.functions.setOn;
-      serviceId = device.setOnServices[onOffStateIndex]; // TODO
+      serviceId = device.setOnServices[onOffStateIndex].id; // TODO
     }
     this.devicesCommandService.runCommand(functionId, device.id, serviceId).subscribe(result => {
       const currentIndex = this.state.devices.findIndex(x => x.id === device.id); // pagination might have changed this

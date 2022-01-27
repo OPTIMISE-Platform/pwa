@@ -35,9 +35,9 @@ export class DevicesCommandService {
 
   fillDeviceFunctionServiceIds(device: CustomDeviceInstance): Observable<CustomDeviceInstance> {
     return this.devicesService.getFullDeviceType(device.device_type_id).pipe(map(deviceType => {
-      device.setOffServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.setOff)).map(service => service.id);
-      device.setOnServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.setOn)).map(service => service.id);
-      device.getOnOffServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.getOnOff)).map(service => service.id);
+      device.setOffServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.setOff));
+      device.setOnServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.setOn));
+      device.getOnOffServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.getOnOff));
 
       device.onOffStates = [];
       return device;
@@ -49,9 +49,9 @@ export class DevicesCommandService {
       return of(device);
     }
 
-    const obs: Observable<{function: string; value: any}>[] = [];
-    device.getOnOffServices.forEach(serviceId => obs.push(this.runCommand(environment.functions.getOnOff, device.id, serviceId).pipe(map(value => {
-     return {function: environment.functions.getOnOff, value};
+    const obs: Observable<{ function: string; value: any }>[] = [];
+    device.getOnOffServices.forEach(service => obs.push(this.runCommand(environment.functions.getOnOff, device.id, service.id).pipe(map(value => {
+      return {function: environment.functions.getOnOff, value};
     }))));
 
 
@@ -61,7 +61,7 @@ export class DevicesCommandService {
 
     return forkJoin(obs).pipe(map(results => {
       results.forEach(result => {
-        switch(result.function) {
+        switch (result.function) {
           case environment.functions.getOnOff:
             device.onOffStates.push(result.value);
             break;
@@ -85,6 +85,6 @@ export class DevicesCommandService {
         return v[0];
       }
       return v;
-    }),catchError(this.errorHandlerService.handleError(DevicesService.name, 'runCommand', undefined)));
+    }), catchError(this.errorHandlerService.handleError(DevicesService.name, 'runCommand', undefined)));
   }
 }

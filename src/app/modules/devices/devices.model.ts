@@ -15,9 +15,9 @@
  */
 
 export interface CustomDeviceInstance extends DeviceInstancesPermSearchModel {
-  getOnOffServices: string[];
-  setOnServices: string[];
-  setOffServices: string[];
+  getOnOffServices: DeviceTypeServiceModel[];
+  setOnServices: DeviceTypeServiceModel[];
+  setOffServices: DeviceTypeServiceModel[];
   onOffStates: (boolean | undefined)[];
 }
 

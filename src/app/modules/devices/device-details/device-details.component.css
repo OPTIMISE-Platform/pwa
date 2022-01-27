@@ -59,3 +59,8 @@
 .green {
   color: darkgreen;
 }
+
+.service-name {
+  padding-right: 1em;
+  padding-left: 1em;
+}
