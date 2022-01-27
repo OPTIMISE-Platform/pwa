@@ -62,16 +62,16 @@ export class DeviceListComponent implements OnInit {
       this.devicesService.getTotalNumberDevices(this.searchFormControl.value).subscribe(d => this.state.maxElements = d);
       this.reset();
       this.buildList().subscribe(_ => this.loadDevices(this.pageSize));
-      this.searchFormControl.valueChanges.pipe(debounceTime(300)).subscribe(value => {
-        if (value === this.state.searchText) {
-          return;
-        }
-        this.state.searchText = value;
-        this.reset();
-        this.loadDevices(this.pageSize);
-        this.devicesService.getTotalNumberDevices(value).subscribe(d => this.state.maxElements = d);
-      });
     }
+    this.searchFormControl.valueChanges.pipe(debounceTime(300)).subscribe(value => {
+      if (value === this.state.searchText) {
+        return;
+      }
+      this.state.searchText = value;
+      this.reset();
+      this.loadDevices(this.pageSize);
+      this.devicesService.getTotalNumberDevices(value).subscribe(d => this.state.maxElements = d);
+    });
   }
 
   reset() {
