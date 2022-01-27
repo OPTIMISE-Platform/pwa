@@ -56,12 +56,17 @@ export class DeviceListComponent implements OnInit {
     if (this.state !== undefined) {
       this.paginator.pageIndex = this.state.page;
       this.movePage({pageIndex: this.state.page, pageSize: this.pageSize} as PageEvent);
+      this.searchFormControl.setValue(this.state.searchText);
     } else {
       this.state = getEmptyState();
       this.devicesService.getTotalNumberDevices(this.searchFormControl.value).subscribe(d => this.state.maxElements = d);
       this.reset();
       this.buildList().subscribe(_ => this.loadDevices(this.pageSize));
       this.searchFormControl.valueChanges.pipe(debounceTime(300)).subscribe(value => {
+        if (value === this.state.searchText) {
+          return;
+        }
+        this.state.searchText = value;
         this.reset();
         this.loadDevices(this.pageSize);
         this.devicesService.getTotalNumberDevices(value).subscribe(d => this.state.maxElements = d);

@@ -28,6 +28,7 @@ export interface SharedStateModel {
   deviceClassIdArr: string[];
   deviceClassIdArrIndex: number;
   classOffset: number;
+  searchText: string;
 }
 
 export function getEmptyState(): SharedStateModel {
@@ -41,5 +42,6 @@ export function getEmptyState(): SharedStateModel {
     deviceClassIdArr: [],
     deviceClassIdArrIndex: 0,
     classOffset: 0,
+    searchText: '',
   };
 }
