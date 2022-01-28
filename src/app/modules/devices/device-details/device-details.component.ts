@@ -65,15 +65,16 @@ export class DeviceDetailsComponent implements OnInit {
           this.state.device = customDevice; // show basic info during loading
           this.getDeviceType().subscribe(deviceType => this.deviceType = deviceType);
           this.getClass().subscribe(deviceTypeClass => this.deviceTypeClass = deviceTypeClass);
-          this.devicesCommandService.fillDeviceFunctionServiceIds(customDevice).subscribe(customDevice => {
-            this.devicesCommandService.fillDeviceState(customDevice).subscribe(customDevice => {
-              this.state.device = customDevice;
+          this.devicesCommandService.fillDeviceFunctionServiceIds([customDevice]).subscribe(customDevices => {
+            this.devicesCommandService.fillDeviceState(customDevices).subscribe(customDevices => {
+              this.state.device = customDevices[0];
             });
           });
         });
 
       } else {
-        this.devicesCommandService.fillDeviceState(this.state.device, [environment.functions.getBattery, environment.functions.getEnergyConsumption]).subscribe(device => this.state.device = device);
+        this.devicesCommandService.fillDeviceState([this.state.device], [environment.functions.getBattery, environment.functions.getEnergyConsumption])
+          .subscribe(devices => this.state.device = devices[0]);
         this.deviceType = this.state.typeIdToTypeMap.get(this.state.device.device_type_id);
         this.deviceTypeClass = this.state.classIdToClassMap.get(this.deviceType?.device_class_id || '');
       }

@@ -122,15 +122,11 @@ export class DeviceListComponent implements OnInit {
     this.devicesService.getDeviceInstances(this.searchFormControl.value,  limit, this.state.classOffset, 'device_type_id', deviceTypeIds || []).subscribe(devices => {
       if (devices.length > 0) {
         this.state.classOffset += devices.length;
-        devices.forEach(device => {
-          const idx = this.state.devices.length; // ensures correct position
-          const customDevice = this.devicesService.permInstanceToCustom(device);
-          this.state.devices.push(customDevice as CustomDeviceInstance); // ensures correct position
-          this.devicesCommandService.fillDeviceFunctionServiceIds(customDevice).subscribe(customDevice => {
-            this.devicesCommandService.fillDeviceState(customDevice, [environment.functions.getOnOff]).subscribe(customDevice => {
-              this.state.devices[idx] = customDevice;
-            });
-          })
+        const customDevices = devices.map(x => this.devicesService.permInstanceToCustom(x));
+        this.devicesCommandService.fillDeviceFunctionServiceIds(customDevices).subscribe(customDevices => {
+          this.devicesCommandService.fillDeviceState(customDevices, [environment.functions.getOnOff]).subscribe(customDevices => {
+            this.state.devices.push(...customDevices);
+          });
         })
       }
       if (devices.length < limit) {
@@ -177,28 +173,28 @@ export class DeviceListComponent implements OnInit {
   }
 
 
-  toggleOnOff(deviceIndex: number, onOffStateIndex: number) {
+  toggleOnOff(deviceIndex: number) {
     deviceIndex += this.lowerOffset;
     const device = this.state.devices[deviceIndex];
 
-    if (device.onOffStates[onOffStateIndex] === undefined) { // TODO I dont now, if getOnOff and setOn/Off are related
+    if (device.onOffStates[0] === undefined) {
       console.warn("Can't toggle device with unknown status");
       return;
     }
 
-    let functionId = '';
-    let serviceId = '';
-    if (device.onOffStates[onOffStateIndex] === true) { // TODO
+    let functionId;
+    let serviceId;
+    if (device.onOffStates[0] === true) {
       functionId = environment.functions.setOff;
-      serviceId = device.setOffServices[onOffStateIndex].id; // TODO
+      serviceId = device.setOffServices[0].id;
     } else {
       functionId = environment.functions.setOn;
-      serviceId = device.setOnServices[onOffStateIndex].id; // TODO
+      serviceId = device.setOnServices[0].id;
     }
     this.devicesCommandService.runCommands([{function_id: functionId, device_id: device.id, service_id: serviceId}]).subscribe(result => {
       const currentIndex = this.state.devices.findIndex(x => x.id === device.id); // pagination might have changed this
       if (currentIndex !== -1) {
-        this.state.devices[currentIndex].onOffStates[onOffStateIndex] = result[0]; // TODO
+        this.state.devices[currentIndex].onOffStates[0] = result[0];
       }
     });
   }
