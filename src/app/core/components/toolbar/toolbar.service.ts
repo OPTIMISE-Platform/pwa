@@ -14,38 +14,21 @@
  * limitations under the License.
  */
 
-.fill-remaining-space {
-  flex: 1 1 auto;
-}
+import {EventEmitter, Injectable, OnDestroy, Output} from '@angular/core';
 
-.image-wrapper {
-  width: 4em;
-}
+@Injectable({
+  providedIn: 'root',
+})
+export class ToolbarService implements OnDestroy {
+  constructor() {}
 
-.logo {
-  height: 2em;
-  width: 2em;
-  display: block;
-  position: fixed;
-  left: calc(50vw - 1em);
-  top: 0.5em;
-}
+  @Output() loading: EventEmitter<boolean> = new EventEmitter();
 
-.header-toolbar {
-  position:  sticky;
-  z-index: 99;
-}
+  ngOnDestroy() {
+    this.loading.complete();
+  }
 
-.mat-toolbar-row, .mat-toolbar-single-row .mat-progress-bar {
-  top: 64px; }
-
-@media (max-width: 599px) {
-  .mat-toolbar-multiple-rows .mat-progress-bar {
-    top: 56px; }
-  .mat-toolbar-row, .mat-toolbar-single-row .mat-progress-bar {
-    top: 56px; } }
-
-.mat-progress-bar {
-  position: fixed;
-  left: 0;
+  setLoading(loading: boolean) {
+    this.loading.next(loading);
+  }
 }

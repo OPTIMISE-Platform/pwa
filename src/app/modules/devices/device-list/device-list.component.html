@@ -48,7 +48,8 @@
   </mat-list-item>
   </span>
   </mat-list>
-  <mat-paginator [length]="state.maxElements"
+  <mat-paginator [fxHide]="loading"
+                 [length]="state.maxElements"
                  [pageSize]="pageSize"
                  (page)="movePage($event)"
                  hidePageSize

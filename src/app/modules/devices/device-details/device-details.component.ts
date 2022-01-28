@@ -23,6 +23,7 @@ import {map, mergeAll, Observable, of} from "rxjs";
 import {getEmptyState, SharedStateModel} from "../state.model";
 import {environment} from "../../../../environments/environment";
 import {SnackbarService} from "../../../core/services/snackbar.service";
+import {ToolbarService} from "../../../core/components/toolbar/toolbar.service";
 
 
 @Component({
@@ -45,6 +46,7 @@ export class DeviceDetailsComponent implements OnInit {
     private devicesService: DevicesService,
     private devicesCommandService: DevicesCommandService,
     private snackBarService: SnackbarService,
+    private toolBarService: ToolbarService,
     private router: Router,
     private route: ActivatedRoute,
   ) {
@@ -53,6 +55,7 @@ export class DeviceDetailsComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.url.subscribe(url => {
+      this.toolBarService.setLoading(true);
       const id = url[url.length - 1].path;
 
       if (this.state?.device?.id !== id) {
@@ -70,13 +73,17 @@ export class DeviceDetailsComponent implements OnInit {
           this.devicesCommandService.fillDeviceFunctionServiceIds([customDevice]).subscribe(customDevices => {
             this.devicesCommandService.fillDeviceState(customDevices).subscribe(customDevices => {
               this.state.device = customDevices[0];
+              this.toolBarService.setLoading(false);
             });
           });
         });
 
       } else {
         this.devicesCommandService.fillDeviceState([this.state.device], [environment.functions.getBattery, environment.functions.getEnergyConsumption])
-          .subscribe(devices => this.state.device = devices[0]);
+          .subscribe(devices => {
+            this.state.device = devices[0];
+            this.toolBarService.setLoading(false);
+          });
         this.deviceType = this.state.typeIdToTypeMap.get(this.state.device.device_type_id);
         this.deviceTypeClass = this.state.classIdToClassMap.get(this.deviceType?.device_class_id || '');
       }

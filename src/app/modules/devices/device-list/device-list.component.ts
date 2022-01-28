@@ -24,6 +24,7 @@ import {environment} from "../../../../environments/environment";
 import {Router} from "@angular/router";
 import {FormControl} from "@angular/forms";
 import {getEmptyState, SharedStateModel} from "../state.model";
+import {ToolbarService} from "../../../core/components/toolbar/toolbar.service";
 
 
 @Component({
@@ -42,21 +43,27 @@ export class DeviceListComponent implements OnInit {
   searchOpen = false;
   searchFormControl = new FormControl();
 
+  loading = true;
+
   @ViewChild('searchInput', {static: true}) searchInput!: ElementRef;
   @ViewChild('paginator', {static: true}) paginator!: MatPaginator;
   constructor(
     private devicesService: DevicesService,
     private devicesCommandService: DevicesCommandService,
+    private toolbarService: ToolbarService,
     private router: Router,
   ) {
     this.state = (this.router.getCurrentNavigation()?.extras?.state || [])['state'];
   }
 
   ngOnInit(): void {
+    this.toolbarService.loading.subscribe(loading => this.loading = loading);
+
     if (this.state !== undefined) {
       this.paginator.pageIndex = this.state.page;
       this.movePage({pageIndex: this.state.page, pageSize: this.pageSize} as PageEvent);
       this.searchFormControl.setValue(this.state.searchText);
+      this.toolbarService.setLoading(false);
     } else {
       this.state = getEmptyState();
       this.devicesService.getTotalNumberDevices(this.searchFormControl.value).subscribe(d => this.state.maxElements = d);
@@ -118,6 +125,7 @@ export class DeviceListComponent implements OnInit {
     if (this.state.deviceClassIdArrIndex >= this.state.deviceClassIdArr.length) {
       return; // list exhausted
     }
+    this.toolbarService.setLoading(true);
     const deviceTypeIds = this.state.classIdToTypeMap.get(this.state.deviceClassIdArr[this.state.deviceClassIdArrIndex])?.map(x => x.id);
     this.devicesService.getDeviceInstances(this.searchFormControl.value,  limit, this.state.classOffset, 'device_type_id', deviceTypeIds || []).subscribe(devices => {
       if (devices.length > 0) {
@@ -126,6 +134,7 @@ export class DeviceListComponent implements OnInit {
         this.devicesCommandService.fillDeviceFunctionServiceIds(customDevices).subscribe(customDevices => {
           this.devicesCommandService.fillDeviceState(customDevices, [environment.functions.getOnOff]).subscribe(customDevices => {
             this.state.devices.push(...customDevices);
+            this.toolbarService.setLoading(false);
           });
         })
       }

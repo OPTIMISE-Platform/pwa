@@ -59,3 +59,7 @@
 .green {
   color: darkgreen;
 }
+
+.mat-card:not([class*=mat-elevation-z]) {
+  box-shadow: none;
+}

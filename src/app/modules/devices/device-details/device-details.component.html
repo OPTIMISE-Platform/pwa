@@ -16,7 +16,7 @@
 
 <div class="container" #container fxLayout="column" (touchstart)="onTouchAdd($event)" (touchmove)="onTouchAdd($event)"
      (touchend)="onTouchEnd($event)" (touchcancel)="onTouchCancel()">
-  <mat-card class="card mat-elevation-z4">
+  <mat-card>
     <mat-card-header>
       <div class="status-icon">
         <mat-icon *ngIf="state?.device?.annotations?.connected === false" matTooltip="Offline">cloud_off</mat-icon>
@@ -44,19 +44,19 @@
         <h3 matSubheader>Status</h3>
 
         <mat-list-item *ngFor="let on of (state?.device?.onOffStates || []); let i = index">
-          <span fxFlex (click)="snack(state!.device!.getOnOffServices[i].name)">On/Off</span>
+          <span fxFlex (click)="snack('Service: ' + state!.device!.getOnOffServices[i].name)">On/Off</span>
           <mat-icon [ngClass]="{'red': !on, 'green': on}">offline_bolt</mat-icon>
         </mat-list-item>
 
         <mat-list-item *ngFor="let battery of (state?.device?.batteryStates || []); let i = index">
-          <span fxFlex (click)="snack(state!.device!.getBatteryServices[i].name)">Battery</span>
+          <span fxFlex (click)="snack('Service: ' + state!.device!.getBatteryServices[i].name)">Battery</span>
           <mat-icon (click)="snack(battery !== undefined ? battery + '%' : 'unknown')" color="accent">
             {{getBatteryIcon(battery)}}
           </mat-icon>
         </mat-list-item>
 
         <mat-list-item *ngFor="let consumption of (state?.device?.energyConsumptionStates || []); let i = index">
-          <span fxFlex (click)="snack(state!.device!.getEnergyConsumptionServices[i].name)">Energy Consumption</span>
+          <span fxFlex (click)="snack('Service: ' + state!.device!.getEnergyConsumptionServices[i].name)">Energy Consumption</span>
           <span>
             {{consumption !== undefined ? consumption + ' kWh' : 'unknown'}}
           </span>

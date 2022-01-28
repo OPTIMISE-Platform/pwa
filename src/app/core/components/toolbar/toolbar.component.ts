@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {AuthorizationService} from "../../services/authorization.service";
+import {ToolbarService} from "./toolbar.service";
 
 @Component({
   selector: 'app-toolbar',
@@ -24,11 +25,16 @@ import {AuthorizationService} from "../../services/authorization.service";
 })
 export class ToolbarComponent implements OnInit {
   userName = '';
+  loading = false;
 
-  constructor(private authorizationService: AuthorizationService) { }
+  constructor(
+    private authorizationService: AuthorizationService,
+    private toolBarService: ToolbarService,
+  ) { }
 
   ngOnInit(): void {
     this.authorizationService.getUserName().then(u => this.userName = u);
+    this.toolBarService.loading.subscribe(loading => this.loading = loading);
   }
 
   logout() {
