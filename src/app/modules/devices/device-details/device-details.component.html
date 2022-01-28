@@ -44,33 +44,23 @@
         <h3 matSubheader>Status</h3>
 
         <mat-list-item *ngFor="let on of (state?.device?.onOffStates || []); let i = index">
-          <span>On/Off</span>
-          <span *ngIf="(state?.device?.onOffStates || []).length == 1" fxFlex></span>
-          <span *ngIf="(state?.device?.onOffStates || []).length > 1"
-                fxFlex class="service-name">{{state!.device!.getOnOffServices[i].name}}</span>
+          <span fxFlex (click)="snack(state!.device!.getOnOffServices[i].name)">On/Off</span>
           <mat-icon [ngClass]="{'red': !on, 'green': on}">offline_bolt</mat-icon>
         </mat-list-item>
 
         <mat-list-item *ngFor="let battery of (state?.device?.batteryStates || []); let i = index">
-          <span>Battery</span>
-          <span *ngIf="(state?.device?.batteryStates || []).length == 1" fxFlex></span>
-          <span *ngIf="(state?.device?.batteryStates || []).length > 1"
-                fxFlex class="service-name">{{state!.device!.getBatteryServices[i].name}}</span>
-          <mat-icon [matTooltip]="battery !== undefined ? battery + '%' : 'unknown'" color="accent">
+          <span fxFlex (click)="snack(state!.device!.getBatteryServices[i].name)">Battery</span>
+          <mat-icon (click)="snack(battery !== undefined ? battery + '%' : 'unknown')" color="accent">
             {{getBatteryIcon(battery)}}
           </mat-icon>
         </mat-list-item>
 
         <mat-list-item *ngFor="let consumption of (state?.device?.energyConsumptionStates || []); let i = index">
-          <span>Energy Consumption</span>
-          <span *ngIf="(state?.device?.energyConsumptionStates || []).length == 1" fxFlex></span>
-          <span *ngIf="(state?.device?.energyConsumptionStates || []).length > 1"
-                fxFlex class="service-name">{{state!.device!.getEnergyConsumptionServices[i].name}}</span>
+          <span fxFlex (click)="snack(state!.device!.getEnergyConsumptionServices[i].name)">Energy Consumption</span>
           <span>
             {{consumption !== undefined ? consumption + ' kWh' : 'unknown'}}
           </span>
         </mat-list-item>
-
 
       </mat-list>
 

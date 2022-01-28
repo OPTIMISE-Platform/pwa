@@ -22,6 +22,7 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {map, mergeAll, Observable, of} from "rxjs";
 import {getEmptyState, SharedStateModel} from "../state.model";
 import {environment} from "../../../../environments/environment";
+import {SnackbarService} from "../../../core/services/snackbar.service";
 
 
 @Component({
@@ -43,6 +44,7 @@ export class DeviceDetailsComponent implements OnInit {
   constructor(
     private devicesService: DevicesService,
     private devicesCommandService: DevicesCommandService,
+    private snackBarService: SnackbarService,
     private router: Router,
     private route: ActivatedRoute,
   ) {
@@ -152,5 +154,9 @@ export class DeviceDetailsComponent implements OnInit {
       return 'battery_full';
     }
     return 'battery_' + Math.floor(battery * 7 /100) + '_bar';
+  }
+
+  snack(message: string) {
+    this.snackBarService.snack(message);
   }
 }

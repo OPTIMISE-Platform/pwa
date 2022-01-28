@@ -15,22 +15,15 @@
  */
 
 import {Injectable} from '@angular/core';
-import {Observable, of} from "rxjs";
-import {SnackbarService} from "./snackbar.service";
+import {MatSnackBar} from "@angular/material/snack-bar";
 
 @Injectable({
-    providedIn: 'root',
+  providedIn: 'root',
 })
-export class ErrorHandlerService {
-    constructor(private snackBarService: SnackbarService) {}
+export class SnackbarService {
+  constructor(private snackBar: MatSnackBar) {}
 
-  handleError<T>(service: string, method: string, result?: T) {
-    return (error: any): Observable<T> => {
-      console.error('Service: ' + service + ' =>> Method: ' + method);
-      console.error(error);
-
-      this.snackBarService.snack("An error occurred");
-      return of(result as T);
-    };
+  snack(message: string) {
+    this.snackBar.open(message, "OK", {duration: 2000});
   }
 }
