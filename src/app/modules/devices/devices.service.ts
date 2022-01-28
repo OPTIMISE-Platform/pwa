@@ -200,4 +200,11 @@ export class DevicesService {
     customDevice.energyConsumptionStates = [];
     return customDevice;
   }
+
+  resetStates(device: CustomDeviceInstance): CustomDeviceInstance {
+    device.onOffStates = [];
+    device.batteryStates = [];
+    device.energyConsumptionStates = [];
+    return device;
+  }
 }

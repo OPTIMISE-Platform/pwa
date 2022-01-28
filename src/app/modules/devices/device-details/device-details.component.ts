@@ -21,7 +21,6 @@ import {DevicesCommandService} from "../device-command.service";
 import {ActivatedRoute, Router} from "@angular/router";
 import {map, mergeAll, Observable, of} from "rxjs";
 import {getEmptyState, SharedStateModel} from "../state.model";
-import {environment} from "../../../../environments/environment";
 import {SnackbarService} from "../../../core/services/snackbar.service";
 import {ToolbarService} from "../../../core/components/toolbar/toolbar.service";
 
@@ -79,7 +78,8 @@ export class DeviceDetailsComponent implements OnInit {
         });
 
       } else {
-        this.devicesCommandService.fillDeviceState([this.state.device], [environment.functions.getBattery, environment.functions.getEnergyConsumption])
+        this.state.device = this.devicesService.resetStates(this.state.device);
+        this.devicesCommandService.fillDeviceState([this.state.device])
           .subscribe(devices => {
             this.state.device = devices[0];
             this.toolBarService.setLoading(false);
