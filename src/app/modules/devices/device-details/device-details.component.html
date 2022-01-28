@@ -56,7 +56,7 @@
           <span *ngIf="(state?.device?.batteryStates || []).length == 1" fxFlex></span>
           <span *ngIf="(state?.device?.batteryStates || []).length > 1"
                 fxFlex class="service-name">{{state!.device!.getBatteryServices[i].name}}</span>
-          <mat-icon [matTooltip]="battery + '%'" color="accent">
+          <mat-icon [matTooltip]="battery !== undefined ? battery + '%' : 'unknown'" color="accent">
             {{getBatteryIcon(battery)}}
           </mat-icon>
         </mat-list-item>

@@ -62,6 +62,7 @@ export class DeviceDetailsComponent implements OnInit {
             return;
           }
           const customDevice = this.devicesService.permInstanceToCustom(device);
+          this.state.device = customDevice; // show basic info during loading
           this.devicesCommandService.fillDeviceFunctionServiceIds(customDevice).subscribe(customDevice => {
             this.devicesCommandService.fillDeviceState(customDevice).subscribe(customDevice => {
               this.state.device = customDevice;
