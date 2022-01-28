@@ -27,5 +27,6 @@ export const environment = {
     setOn: 'urn:infai:ses:controlling-function:79e7914b-f303-4a7d-90af-dee70db05fd9',
     setOff: 'urn:infai:ses:controlling-function:2f35150b-9df7-4cad-95bc-165fa00219fd',
     getBattery: 'urn:infai:ses:measuring-function:00549f18-88b5-44c7-adb1-f558e8d53d1d',
+    getEnergyConsumption: 'urn:infai:ses:measuring-function:57dfd369-92db-462c-aca4-a767b52c972e',
   },
 };

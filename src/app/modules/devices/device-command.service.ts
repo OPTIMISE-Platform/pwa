@@ -39,6 +39,7 @@ export class DevicesCommandService {
       device.setOnServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.setOn));
       device.getOnOffServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.getOnOff));
       device.getBatteryServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.getBattery));
+      device.getEnergyConsumptionServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.getEnergyConsumption));
 
 
       device.onOffStates = [];
@@ -46,22 +47,28 @@ export class DevicesCommandService {
     }));
   }
 
-  fillDeviceState(device: CustomDeviceInstance, onlySpecificType: string | undefined = undefined): Observable<CustomDeviceInstance> {
+  fillDeviceState(device: CustomDeviceInstance, onlySpecificType: string[] = []): Observable<CustomDeviceInstance> {
     if (device.annotations?.connected !== true) {
       return of(device);
     }
 
     const obs: Observable<{ function: string; value: any }>[] = [];
 
-    if (onlySpecificType === undefined || onlySpecificType === environment.functions.getOnOff) {
+    if (onlySpecificType.length === 0 || onlySpecificType.some(f => f === environment.functions.getOnOff)) {
       device.getOnOffServices.forEach(service => obs.push(this.runCommand(environment.functions.getOnOff, device.id, service.id).pipe(map(value => {
         return {function: environment.functions.getOnOff, value};
       }))));
     }
 
-    if (onlySpecificType === undefined || onlySpecificType === environment.functions.getBattery) {
+    if (onlySpecificType.length === 0 || onlySpecificType.some(f => f === environment.functions.getBattery)) {
       device.getBatteryServices.forEach(service => obs.push(this.runCommand(environment.functions.getBattery, device.id, service.id).pipe(map(value => {
         return {function: environment.functions.getBattery, value};
+      }))));
+    }
+
+    if (onlySpecificType.length === 0 || onlySpecificType.some(f => f === environment.functions.getEnergyConsumption)) {
+      device.getEnergyConsumptionServices.forEach(service => obs.push(this.runCommand(environment.functions.getEnergyConsumption, device.id, service.id).pipe(map(value => {
+        return {function: environment.functions.getEnergyConsumption, value};
       }))));
     }
 
@@ -78,6 +85,9 @@ export class DevicesCommandService {
             break;
           case environment.functions.getBattery:
             device.batteryStates.push(result.value);
+            break;
+          case environment.functions.getEnergyConsumption:
+            device.energyConsumptionStates.push(result.value);
             break;
           default:
             console.error("got result for service, but no value mapping defined", device.id, result.function);

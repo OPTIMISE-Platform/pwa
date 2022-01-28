@@ -194,8 +194,10 @@ export class DevicesService {
     customDevice.setOnServices = [];
     customDevice.setOffServices = [];
     customDevice.getBatteryServices = [];
+    customDevice.getEnergyConsumptionServices = [];
     customDevice.onOffStates = [];
     customDevice.batteryStates = [];
+    customDevice.energyConsumptionStates = [];
     return customDevice;
   }
 }

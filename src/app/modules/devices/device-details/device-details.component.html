@@ -61,6 +61,16 @@
           </mat-icon>
         </mat-list-item>
 
+        <mat-list-item *ngFor="let consumption of (state?.device?.energyConsumptionStates || []); let i = index">
+          <span>Energy Consumption</span>
+          <span *ngIf="(state?.device?.energyConsumptionStates || []).length == 1" fxFlex></span>
+          <span *ngIf="(state?.device?.energyConsumptionStates || []).length > 1"
+                fxFlex class="service-name">{{state!.device!.getEnergyConsumptionServices[i].name}}</span>
+          <span>
+            {{consumption !== undefined ? consumption + ' kWh' : 'unknown'}}
+          </span>
+        </mat-list-item>
+
 
       </mat-list>
 

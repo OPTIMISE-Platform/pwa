@@ -127,7 +127,7 @@ export class DeviceListComponent implements OnInit {
           const customDevice = this.devicesService.permInstanceToCustom(device);
           this.state.devices.push(customDevice as CustomDeviceInstance); // ensures correct position
           this.devicesCommandService.fillDeviceFunctionServiceIds(customDevice).subscribe(customDevice => {
-            this.devicesCommandService.fillDeviceState(customDevice, environment.functions.getOnOff).subscribe(customDevice => {
+            this.devicesCommandService.fillDeviceState(customDevice, [environment.functions.getOnOff]).subscribe(customDevice => {
               this.state.devices[idx] = customDevice;
             });
           })

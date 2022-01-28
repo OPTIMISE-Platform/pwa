@@ -19,8 +19,10 @@ export interface CustomDeviceInstance extends DeviceInstancesPermSearchModel {
   getBatteryServices: DeviceTypeServiceModel[];
   setOnServices: DeviceTypeServiceModel[];
   setOffServices: DeviceTypeServiceModel[];
+  getEnergyConsumptionServices: DeviceTypeServiceModel[];
   onOffStates: (boolean | undefined)[];
   batteryStates: (number | undefined)[];
+  energyConsumptionStates: (number | undefined)[];
 }
 
 export interface DeviceTypeBaseModel {
