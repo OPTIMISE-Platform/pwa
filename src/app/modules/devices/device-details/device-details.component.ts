@@ -15,16 +15,13 @@
  */
 
 import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
-import {
-  DeviceTypeDeviceClassModel,
-  DeviceTypeModel,
-  DeviceTypePermSearchModel
-} from "../devices.model";
+import {DeviceTypeDeviceClassModel, DeviceTypeModel, DeviceTypePermSearchModel} from "../devices.model";
 import {DevicesService} from "../devices.service";
 import {DevicesCommandService} from "../device-command.service";
 import {ActivatedRoute, Router} from "@angular/router";
 import {map, mergeAll, Observable, of} from "rxjs";
 import {getEmptyState, SharedStateModel} from "../state.model";
+import {environment} from "../../../../environments/environment";
 
 
 @Component({
@@ -75,6 +72,7 @@ export class DeviceDetailsComponent implements OnInit {
         });
 
       } else {
+        this.devicesCommandService.fillDeviceState(this.state.device, environment.functions.getBattery).subscribe(device => this.state.device = device);
         this.deviceType = this.state.typeIdToTypeMap.get(this.state.device.device_type_id);
         this.deviceTypeClass = this.state.classIdToClassMap.get(this.deviceType?.device_class_id || '');
       }
@@ -142,5 +140,15 @@ export class DeviceDetailsComponent implements OnInit {
         return;
       }
     }
+  }
+
+  getBatteryIcon(battery: number | undefined): string {
+    if (battery === undefined) {
+      return 'battery_unknown';
+    }
+    if (battery >= 95) {
+      return 'battery_full';
+    }
+    return 'battery_' + Math.floor(battery * 7 /100) + '_bar';
   }
 }

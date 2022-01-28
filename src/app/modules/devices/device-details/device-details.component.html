@@ -48,9 +48,17 @@
           <span *ngIf="(state?.device?.onOffStates || []).length == 1" fxFlex></span>
           <span *ngIf="(state?.device?.onOffStates || []).length > 1"
                 fxFlex class="service-name">{{state!.device!.getOnOffServices[i].name}}</span>
-          <button mat-icon-button disabled>
-            <mat-icon [ngClass]="{'red': !on, 'green': on}">offline_bolt</mat-icon>
-          </button>
+          <mat-icon [ngClass]="{'red': !on, 'green': on}">offline_bolt</mat-icon>
+        </mat-list-item>
+
+        <mat-list-item *ngFor="let battery of (state?.device?.batteryStates || []); let i = index">
+          <span>Battery</span>
+          <span *ngIf="(state?.device?.batteryStates || []).length == 1" fxFlex></span>
+          <span *ngIf="(state?.device?.batteryStates || []).length > 1"
+                fxFlex class="service-name">{{state!.device!.getBatteryServices[i].name}}</span>
+          <mat-icon [matTooltip]="battery + '%'" color="accent">
+            {{getBatteryIcon(battery)}}
+          </mat-icon>
         </mat-list-item>
 
 
