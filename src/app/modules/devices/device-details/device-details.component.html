@@ -62,6 +62,13 @@
           </span>
         </mat-list-item>
 
+        <mat-list-item *ngFor="let consumption of (state?.device?.powerConsumptionStates || []); let i = index">
+          <span fxFlex (click)="snack('Service: ' + state!.device!.getPowerConsumptionServices[i].name)">Power Consumption</span>
+          <span>
+            {{consumption !== undefined ? consumption + ' W' : 'unknown'}}
+          </span>
+        </mat-list-item>
+
       </mat-list>
 
     </mat-card-content>
