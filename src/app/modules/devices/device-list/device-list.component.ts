@@ -195,10 +195,10 @@ export class DeviceListComponent implements OnInit {
       functionId = environment.functions.setOn;
       serviceId = device.setOnServices[onOffStateIndex].id; // TODO
     }
-    this.devicesCommandService.runCommand(functionId, device.id, serviceId).subscribe(result => {
+    this.devicesCommandService.runCommands([{function_id: functionId, device_id: device.id, service_id: serviceId}]).subscribe(result => {
       const currentIndex = this.state.devices.findIndex(x => x.id === device.id); // pagination might have changed this
       if (currentIndex !== -1) {
-        this.state.devices[currentIndex].onOffStates[onOffStateIndex] = result as boolean | undefined; // TODO
+        this.state.devices[currentIndex].onOffStates[onOffStateIndex] = result[0]; // TODO
       }
     });
   }

@@ -15,7 +15,7 @@
  */
 
 import {Injectable} from '@angular/core';
-import {catchError, forkJoin, map, Observable, of, timeout} from "rxjs";
+import {catchError, map, Observable, of, timeout} from "rxjs";
 import {environment} from "../../../environments/environment";
 import {HttpClient} from "@angular/common/http";
 import {ErrorHandlerService} from "../../core/services/error-handler.service";
@@ -52,42 +52,47 @@ export class DevicesCommandService {
       return of(device);
     }
 
-    const obs: Observable<{ function: string; value: any }>[] = [];
+    const commands:  {function_id: string; device_id: string; service_id: string; input?: any}[] = [];
+    const commandFunctionMapper: string[] = [];
+
 
     if (onlySpecificType.length === 0 || onlySpecificType.some(f => f === environment.functions.getOnOff)) {
-      device.getOnOffServices.forEach(service => obs.push(this.runCommand(environment.functions.getOnOff, device.id, service.id).pipe(map(value => {
-        return {function: environment.functions.getOnOff, value};
-      }))));
+      device.getOnOffServices.forEach(service => {
+        commands.push({function_id: environment.functions.getOnOff, device_id: device.id, service_id: service.id});
+        commandFunctionMapper.push(environment.functions.getOnOff);
+      });
     }
 
     if (onlySpecificType.length === 0 || onlySpecificType.some(f => f === environment.functions.getBattery)) {
-      device.getBatteryServices.forEach(service => obs.push(this.runCommand(environment.functions.getBattery, device.id, service.id).pipe(map(value => {
-        return {function: environment.functions.getBattery, value};
-      }))));
+      device.getBatteryServices.forEach(service => {
+        commands.push({function_id: environment.functions.getBattery, device_id: device.id, service_id: service.id});
+        commandFunctionMapper.push(environment.functions.getBattery);
+      });
     }
 
     if (onlySpecificType.length === 0 || onlySpecificType.some(f => f === environment.functions.getEnergyConsumption)) {
-      device.getEnergyConsumptionServices.forEach(service => obs.push(this.runCommand(environment.functions.getEnergyConsumption, device.id, service.id).pipe(map(value => {
-        return {function: environment.functions.getEnergyConsumption, value};
-      }))));
+      device.getEnergyConsumptionServices.forEach(service => {
+        commands.push({function_id: environment.functions.getEnergyConsumption, device_id: device.id, service_id: service.id});
+        commandFunctionMapper.push(environment.functions.getEnergyConsumption);
+      });
     }
 
 
-    if (obs.length === 0) {
+    if (commands.length === 0) {
       return of(device);
     }
 
-    return forkJoin(obs).pipe(map(results => {
-      results.forEach(result => {
-        switch (result.function) {
+    return this.runCommands(commands).pipe(map(results => {
+      results.forEach((result: any, i: number) => {
+        switch (commandFunctionMapper[i]) {
           case environment.functions.getOnOff:
-            device.onOffStates.push(result.value);
+            device.onOffStates.push(result);
             break;
           case environment.functions.getBattery:
-            device.batteryStates.push(result.value);
+            device.batteryStates.push(result);
             break;
           case environment.functions.getEnergyConsumption:
-            device.energyConsumptionStates.push(result.value);
+            device.energyConsumptionStates.push(result);
             break;
           default:
             console.error("got result for service, but no value mapping defined", device.id, result.function);
@@ -98,17 +103,17 @@ export class DevicesCommandService {
     }));
   }
 
-  runCommand(functionId: string, deviceId: string, serviceId: string, input: any = undefined): Observable<unknown> {
-    return this.http.post(environment.apiUrl + "/device-command/commands", {
-      function_id: functionId,
-      input,
-      device_id: deviceId,
-      service_id: serviceId,
-    }).pipe(timeout(30000), map(v => {
-      if (Array.isArray(v) && v.length === 1) {
-        return v[0];
-      }
-      return v;
-    }), catchError(this.errorHandlerService.handleError(DevicesService.name, 'runCommand', undefined)));
+  runCommands(commands: {function_id: string; device_id: string; service_id: string; input?: any}[]): Observable<any[]> {
+    return this.http.post<{status_code: number; message: any[]}[]>(environment.apiUrl + "/device-command/commands/batch", commands).pipe(timeout(30000), map(v => {
+      const results: any[] = [];
+      v.forEach(result => {
+        if (result.status_code !== 200) {
+          results.push(undefined);
+        } else {
+          results.push(result.message[0]); // may be more entries if device group, but not used currently
+        }
+      });
+      return results;
+    }), catchError(this.errorHandlerService.handleError(DevicesService.name, 'runCommands', Array(commands.length).fill(undefined))));
   }
 }
