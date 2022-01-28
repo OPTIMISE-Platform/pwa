@@ -191,15 +191,24 @@ export class DevicesService {
   permInstanceToCustom(device: DeviceInstancesPermSearchModel): CustomDeviceInstance {
     const customDevice = device as CustomDeviceInstance;
     customDevice.getOnOffServices = [];
+    customDevice.onOffStates = [];
+
+    customDevice.getBatteryServices = [];
+    customDevice.batteryStates = [];
+
+    customDevice.getEnergyConsumptionServices = [];
+    customDevice.energyConsumptionStates = [];
+
+    customDevice.getPowerConsumptionServices = [];
+    customDevice.powerConsumptionStates = [];
+
+    customDevice.getTemperatureServices = [];
+    customDevice.temperatureStates = [];
+
+
+
     customDevice.setOnServices = [];
     customDevice.setOffServices = [];
-    customDevice.getBatteryServices = [];
-    customDevice.getEnergyConsumptionServices = [];
-    customDevice.getPowerConsumptionServices = [];
-    customDevice.onOffStates = [];
-    customDevice.batteryStates = [];
-    customDevice.energyConsumptionStates = [];
-    customDevice.powerConsumptionStates = [];
     return customDevice;
   }
 
@@ -208,6 +217,7 @@ export class DevicesService {
     device.batteryStates = [];
     device.energyConsumptionStates = [];
     device.powerConsumptionStates = [];
+    device.temperatureStates = [];
     return device;
   }
 }

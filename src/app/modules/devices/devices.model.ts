@@ -15,16 +15,26 @@
  */
 
 export interface CustomDeviceInstance extends DeviceInstancesPermSearchModel {
+  // Measuring
   getOnOffServices: DeviceTypeServiceModel[];
+  onOffStates: (boolean | undefined)[];
+
   getBatteryServices: DeviceTypeServiceModel[];
+  batteryStates: (number | undefined)[];
+
+  getEnergyConsumptionServices: DeviceTypeServiceModel[];
+  energyConsumptionStates: (number | undefined)[];
+
+  getPowerConsumptionServices: DeviceTypeServiceModel[];
+  powerConsumptionStates: (number | undefined)[];
+
+  getTemperatureServices: DeviceTypeServiceModel[];
+  temperatureStates: (number | undefined)[];
+
+
+  // Controlling
   setOnServices: DeviceTypeServiceModel[];
   setOffServices: DeviceTypeServiceModel[];
-  getEnergyConsumptionServices: DeviceTypeServiceModel[];
-  getPowerConsumptionServices: DeviceTypeServiceModel[];
-  onOffStates: (boolean | undefined)[];
-  batteryStates: (number | undefined)[];
-  energyConsumptionStates: (number | undefined)[];
-  powerConsumptionStates: (number | undefined)[];
 }
 
 export interface DeviceTypeBaseModel {
