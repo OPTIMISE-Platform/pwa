@@ -47,6 +47,7 @@ export class DevicesCommandService {
         device.getEnergyConsumptionServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.getEnergyConsumption));
         device.getPowerConsumptionServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.getPowerConsumption));
         device.getTemperatureServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.getTemperature));
+        device.getTargetTemperatureServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.getTargetTemperature));
         return device;
       })));
     });
@@ -113,6 +114,18 @@ export class DevicesCommandService {
           commandDeviceMapper.push(i);
         });
       }
+
+      if (onlySpecificType.length === 0 || onlySpecificType.some(f => f === environment.functions.getTargetTemperature)) {
+        device.getTargetTemperatureServices.forEach(service => {
+          commands.push({
+            function_id: environment.functions.getTargetTemperature,
+            device_id: device.id,
+            service_id: service.id
+          });
+          commandFunctionMapper.push(environment.functions.getTargetTemperature);
+          commandDeviceMapper.push(i);
+        });
+      }
     });
 
 
@@ -137,6 +150,9 @@ export class DevicesCommandService {
             break;
           case environment.functions.getTemperature:
             devices[commandDeviceMapper[i]].temperatureStates.push(result);
+            break;
+          case environment.functions.getTargetTemperature:
+            devices[commandDeviceMapper[i]].targetTemperatureStates.push(result);
             break;
           default:
             console.error("got result for service, but no value mapping defined", devices[commandDeviceMapper[i]].id, result.function);

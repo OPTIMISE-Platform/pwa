@@ -76,6 +76,13 @@
           </span>
         </mat-list-item>
 
+        <mat-list-item *ngFor="let temp of (state?.device?.targetTemperatureStates || []); let i = index">
+          <span fxFlex (click)="snack('Service: ' + state!.device!.getTargetTemperatureServices[i].name)">Target Temperature</span>
+          <span>
+            {{temp !== undefined ? temp + ' °C' : 'unknown'}}
+          </span>
+        </mat-list-item>
+
       </mat-list>
 
     </mat-card-content>

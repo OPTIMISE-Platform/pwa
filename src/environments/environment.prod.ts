@@ -30,5 +30,6 @@ export const environment = {
     getEnergyConsumption: 'urn:infai:ses:measuring-function:57dfd369-92db-462c-aca4-a767b52c972e',
     getPowerConsumption: 'urn:infai:ses:measuring-function:1c7c90fb-73b6-4690-aac2-72e9735e68d0',
     getTemperature: 'urn:infai:ses:measuring-function:f2769eb9-b6ad-4f7e-bd28-e4ea043d2f8b',
+    getTargetTemperature: 'urn:infai:ses:measuring-function:132ceb17-df28-44c2-9771-e1a610d6a13f',
   },
 };

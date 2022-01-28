@@ -205,6 +205,9 @@ export class DevicesService {
     customDevice.getTemperatureServices = [];
     customDevice.temperatureStates = [];
 
+    customDevice.getTargetTemperatureServices = [];
+    customDevice.targetTemperatureStates = [];
+
 
 
     customDevice.setOnServices = [];
@@ -218,6 +221,7 @@ export class DevicesService {
     device.energyConsumptionStates = [];
     device.powerConsumptionStates = [];
     device.temperatureStates = [];
+    device.targetTemperatureStates = [];
     return device;
   }
 }

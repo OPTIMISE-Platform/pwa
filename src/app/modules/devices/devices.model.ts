@@ -31,6 +31,8 @@ export interface CustomDeviceInstance extends DeviceInstancesPermSearchModel {
   getTemperatureServices: DeviceTypeServiceModel[];
   temperatureStates: (number | undefined)[];
 
+  getTargetTemperatureServices: DeviceTypeServiceModel[];
+  targetTemperatureStates: (number | undefined)[];
 
   // Controlling
   setOnServices: DeviceTypeServiceModel[];
