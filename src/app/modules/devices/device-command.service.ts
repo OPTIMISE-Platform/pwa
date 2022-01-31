@@ -56,6 +56,7 @@ export class DevicesCommandService {
     const commands: { function_id: string; device_id: string; service_id: string; input?: any }[] = [];
     const commandFunctionMapper: string[] = [];
     const commandDeviceMapper: number[] = [];
+    const commandTransformMapper: (((value: any) => string) | undefined)[] = [];
 
     devices.forEach((device, i) => {
       if (device.annotations?.connected !== true) {
@@ -68,6 +69,7 @@ export class DevicesCommandService {
             commands.push({function_id: functionConfig.id, device_id: device.id, service_id: service.id});
             commandFunctionMapper.push(functionConfig.id);
             commandDeviceMapper.push(i);
+            commandTransformMapper.push(functionConfig.transform);
           });
         }
       });
@@ -83,7 +85,10 @@ export class DevicesCommandService {
         if (!devices[commandDeviceMapper[i]].measuringStates.has(commandFunctionMapper[i])) {
           devices[commandDeviceMapper[i]].measuringStates.set(commandFunctionMapper[i], []);
         }
-        devices[commandDeviceMapper[i]].measuringStates.get(commandFunctionMapper[i])?.push(result);
+        const transformer = commandTransformMapper[i];
+        devices[commandDeviceMapper[i]].measuringStates.get(commandFunctionMapper[i])?.push(
+          transformer !== undefined ? transformer(result) : result
+        );
       });
       return devices;
     }));
