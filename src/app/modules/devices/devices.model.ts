@@ -16,23 +16,8 @@
 
 export interface CustomDeviceInstance extends DeviceInstancesPermSearchModel {
   // Measuring
-  getOnOffServices: DeviceTypeServiceModel[];
-  onOffStates: (boolean | undefined)[];
-
-  getBatteryServices: DeviceTypeServiceModel[];
-  batteryStates: (number | undefined)[];
-
-  getEnergyConsumptionServices: DeviceTypeServiceModel[];
-  energyConsumptionStates: (number | undefined)[];
-
-  getPowerConsumptionServices: DeviceTypeServiceModel[];
-  powerConsumptionStates: (number | undefined)[];
-
-  getTemperatureServices: DeviceTypeServiceModel[];
-  temperatureStates: (number | undefined)[];
-
-  getTargetTemperatureServices: DeviceTypeServiceModel[];
-  targetTemperatureStates: (number | undefined)[];
+  measuringServices: Map<string, DeviceTypeServiceModel[]>;
+  measuringStates: Map<string, any[]>;
 
   // Controlling
   setOnServices: DeviceTypeServiceModel[];
@@ -141,38 +126,6 @@ export interface DeviceTypeContentVariableModel {
   sub_content_variables?: DeviceTypeContentVariableModel[];
   serialization_options: string[];
   unit_reference?: string;
-}
-
-export interface DeviceTypeConceptModel {
-  id: string;
-  name: string;
-  base_characteristic_id: string;
-  characteristic_ids: string[];
-}
-
-export interface DeviceTypeCharacteristicsModel {
-  id?: string;
-  name: string;
-  type: string;
-  rdf_type?: string;
-  min_value?: number;
-  max_value?: number;
-  value?: string | boolean | number;
-  sub_characteristics?: DeviceTypeCharacteristicsModel[] | null;
-}
-
-export interface DeviceTypeFunctionModel {
-  id: string;
-  name: string;
-  description: string;
-  rdf_type: string;
-  concept_id: string;
-}
-
-export interface DeviceTypeFunctionType {
-  text: string;
-  rdf_type: string;
-  urn_part: string;
 }
 
 export enum DeviceTypeInteractionEnum {

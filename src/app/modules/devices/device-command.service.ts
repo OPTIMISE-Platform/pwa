@@ -21,6 +21,7 @@ import {HttpClient} from "@angular/common/http";
 import {ErrorHandlerService} from "../../core/services/error-handler.service";
 import {DevicesService} from "./devices.service";
 import {CustomDeviceInstance} from "./devices.model";
+import {measuringFunctions} from "../../core/function-configs";
 
 @Injectable({
   providedIn: 'root'
@@ -38,16 +39,13 @@ export class DevicesCommandService {
 
     devices.forEach(device => {
       obs.push(this.devicesService.getFullDeviceType(device.device_type_id).pipe(map(deviceType => {
-        device.onOffStates = [];
+        measuringFunctions.forEach(functionConfig => {
+          device.measuringServices.set(functionConfig.id, deviceType.services.filter(service => service.function_ids.some(functionId => functionId === functionConfig.id)));
+        });
+
 
         device.setOffServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.setOff));
         device.setOnServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.setOn));
-        device.getOnOffServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.getOnOff));
-        device.getBatteryServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.getBattery));
-        device.getEnergyConsumptionServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.getEnergyConsumption));
-        device.getPowerConsumptionServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.getPowerConsumption));
-        device.getTemperatureServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.getTemperature));
-        device.getTargetTemperatureServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.getTargetTemperature));
         return device;
       })));
     });
@@ -63,69 +61,16 @@ export class DevicesCommandService {
       if (device.annotations?.connected !== true) {
         return;
       }
-      if (onlySpecificType.length === 0 || onlySpecificType.some(f => f === environment.functions.getOnOff)) {
-        device.getOnOffServices.forEach(service => {
-          commands.push({function_id: environment.functions.getOnOff, device_id: device.id, service_id: service.id});
-          commandFunctionMapper.push(environment.functions.getOnOff);
-          commandDeviceMapper.push(i);
-        });
-      }
 
-      if (onlySpecificType.length === 0 || onlySpecificType.some(f => f === environment.functions.getBattery)) {
-        device.getBatteryServices.forEach(service => {
-          commands.push({function_id: environment.functions.getBattery, device_id: device.id, service_id: service.id});
-          commandFunctionMapper.push(environment.functions.getBattery);
-          commandDeviceMapper.push(i);
-        });
-      }
-
-      if (onlySpecificType.length === 0 || onlySpecificType.some(f => f === environment.functions.getEnergyConsumption)) {
-        device.getEnergyConsumptionServices.forEach(service => {
-          commands.push({
-            function_id: environment.functions.getEnergyConsumption,
-            device_id: device.id,
-            service_id: service.id
+      measuringFunctions.forEach(functionConfig => {
+        if (onlySpecificType.length === 0 || onlySpecificType.some(f => f === functionConfig.id)) {
+          device.measuringServices.get(functionConfig.id)?.forEach(service => {
+            commands.push({function_id: functionConfig.id, device_id: device.id, service_id: service.id});
+            commandFunctionMapper.push(functionConfig.id);
+            commandDeviceMapper.push(i);
           });
-          commandFunctionMapper.push(environment.functions.getEnergyConsumption);
-          commandDeviceMapper.push(i);
-        });
-      }
-
-      if (onlySpecificType.length === 0 || onlySpecificType.some(f => f === environment.functions.getPowerConsumption)) {
-        device.getEnergyConsumptionServices.forEach(service => {
-          commands.push({
-            function_id: environment.functions.getPowerConsumption,
-            device_id: device.id,
-            service_id: service.id
-          });
-          commandFunctionMapper.push(environment.functions.getPowerConsumption);
-          commandDeviceMapper.push(i);
-        });
-      }
-
-      if (onlySpecificType.length === 0 || onlySpecificType.some(f => f === environment.functions.getTemperature)) {
-        device.getTemperatureServices.forEach(service => {
-          commands.push({
-            function_id: environment.functions.getTemperature,
-            device_id: device.id,
-            service_id: service.id
-          });
-          commandFunctionMapper.push(environment.functions.getTemperature);
-          commandDeviceMapper.push(i);
-        });
-      }
-
-      if (onlySpecificType.length === 0 || onlySpecificType.some(f => f === environment.functions.getTargetTemperature)) {
-        device.getTargetTemperatureServices.forEach(service => {
-          commands.push({
-            function_id: environment.functions.getTargetTemperature,
-            device_id: device.id,
-            service_id: service.id
-          });
-          commandFunctionMapper.push(environment.functions.getTargetTemperature);
-          commandDeviceMapper.push(i);
-        });
-      }
+        }
+      });
     });
 
 
@@ -135,28 +80,10 @@ export class DevicesCommandService {
 
     return this.runCommands(commands).pipe(map(results => {
       results.forEach((result: any, i: number) => {
-        switch (commandFunctionMapper[i]) {
-          case environment.functions.getOnOff:
-            devices[commandDeviceMapper[i]].onOffStates.push(result);
-            break;
-          case environment.functions.getBattery:
-            devices[commandDeviceMapper[i]].batteryStates.push(result);
-            break;
-          case environment.functions.getEnergyConsumption:
-            devices[commandDeviceMapper[i]].energyConsumptionStates.push(result);
-            break;
-          case environment.functions.getPowerConsumption:
-            devices[commandDeviceMapper[i]].powerConsumptionStates.push(result);
-            break;
-          case environment.functions.getTemperature:
-            devices[commandDeviceMapper[i]].temperatureStates.push(result);
-            break;
-          case environment.functions.getTargetTemperature:
-            devices[commandDeviceMapper[i]].targetTemperatureStates.push(result);
-            break;
-          default:
-            console.error("got result for service, but no value mapping defined", devices[commandDeviceMapper[i]].id, result.function);
+        if (!devices[commandDeviceMapper[i]].measuringStates.has(commandFunctionMapper[i])) {
+          devices[commandDeviceMapper[i]].measuringStates.set(commandFunctionMapper[i], []);
         }
+        devices[commandDeviceMapper[i]].measuringStates.get(commandFunctionMapper[i])?.push(result);
       });
       return devices;
     }));

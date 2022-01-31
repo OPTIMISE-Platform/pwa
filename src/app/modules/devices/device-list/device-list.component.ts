@@ -20,11 +20,11 @@ import {DevicesService} from "../devices.service";
 import {debounceTime, forkJoin, map, Observable} from "rxjs";
 import {MatPaginator, PageEvent} from "@angular/material/paginator";
 import {DevicesCommandService} from "../device-command.service";
-import {environment} from "../../../../environments/environment";
 import {Router} from "@angular/router";
 import {FormControl} from "@angular/forms";
 import {getEmptyState, SharedStateModel} from "../state.model";
 import {ToolbarService} from "../../../core/components/toolbar/toolbar.service";
+import {environment} from "../../../../environments/environment";
 
 
 @Component({
@@ -186,24 +186,28 @@ export class DeviceListComponent implements OnInit {
     deviceIndex += this.lowerOffset;
     const device = this.state.devices[deviceIndex];
 
-    if (device.onOffStates[0] === undefined) {
+    if ((device.measuringStates.get(environment.functions.getOnOff) || [])[0] === undefined) {
       console.warn("Can't toggle device with unknown status");
       return;
     }
 
     let functionId;
     let serviceId;
-    if (device.onOffStates[0] === true) {
+    if ((device.measuringStates.get(environment.functions.getOnOff) || [])[0] === true) {
       functionId = environment.functions.setOff;
-      serviceId = device.setOffServices[0].id;
+      serviceId = device.setOffServices[0]?.id;
     } else {
       functionId = environment.functions.setOn;
-      serviceId = device.setOnServices[0].id;
+      serviceId = device.setOnServices[0]?.id;
+    }
+    if (serviceId === undefined) {
+      console.warn("Device is missing setOn or setOff service!");
+      return;
     }
     this.devicesCommandService.runCommands([{function_id: functionId, device_id: device.id, service_id: serviceId}]).subscribe(result => {
       const currentIndex = this.state.devices.findIndex(x => x.id === device.id); // pagination might have changed this
       if (currentIndex !== -1) {
-        this.state.devices[currentIndex].onOffStates[0] = result[0];
+        (this.state.devices[currentIndex].measuringStates.get(environment.functions.getOnOff) || [{}])[0] = result[0];
       }
     });
   }
@@ -226,5 +230,13 @@ export class DeviceListComponent implements OnInit {
     this.state.device = device;
 
     this.router.navigate(['devices/' + device.id], {state: {'state': this.state}});
+  }
+
+  getOnOffServices(device: CustomDeviceInstance) {
+    return device.measuringServices.get(environment.functions.getOnOff);
+  }
+
+  getOnOffStates(device: CustomDeviceInstance) {
+    return device.measuringStates.get(environment.functions.getOnOff);
   }
 }

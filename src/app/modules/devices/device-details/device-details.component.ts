@@ -23,6 +23,7 @@ import {map, mergeAll, Observable, of} from "rxjs";
 import {getEmptyState, SharedStateModel} from "../state.model";
 import {SnackbarService} from "../../../core/services/snackbar.service";
 import {ToolbarService} from "../../../core/components/toolbar/toolbar.service";
+import {measuringFunctions} from "../../../core/function-configs";
 
 
 @Component({
@@ -165,5 +166,9 @@ export class DeviceDetailsComponent implements OnInit {
 
   snack(message: string) {
     this.snackBarService.snack(message);
+  }
+
+  getServiceConfigs() {
+    return measuringFunctions;
   }
 }

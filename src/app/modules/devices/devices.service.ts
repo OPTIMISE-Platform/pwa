@@ -190,24 +190,8 @@ export class DevicesService {
 
   permInstanceToCustom(device: DeviceInstancesPermSearchModel): CustomDeviceInstance {
     const customDevice = device as CustomDeviceInstance;
-    customDevice.getOnOffServices = [];
-    customDevice.onOffStates = [];
-
-    customDevice.getBatteryServices = [];
-    customDevice.batteryStates = [];
-
-    customDevice.getEnergyConsumptionServices = [];
-    customDevice.energyConsumptionStates = [];
-
-    customDevice.getPowerConsumptionServices = [];
-    customDevice.powerConsumptionStates = [];
-
-    customDevice.getTemperatureServices = [];
-    customDevice.temperatureStates = [];
-
-    customDevice.getTargetTemperatureServices = [];
-    customDevice.targetTemperatureStates = [];
-
+    customDevice.measuringServices = new Map();
+    customDevice.measuringStates = new Map();
 
 
     customDevice.setOnServices = [];
@@ -216,12 +200,7 @@ export class DevicesService {
   }
 
   resetStates(device: CustomDeviceInstance): CustomDeviceInstance {
-    device.onOffStates = [];
-    device.batteryStates = [];
-    device.energyConsumptionStates = [];
-    device.powerConsumptionStates = [];
-    device.temperatureStates = [];
-    device.targetTemperatureStates = [];
+    device.measuringStates = new Map();
     return device;
   }
 }

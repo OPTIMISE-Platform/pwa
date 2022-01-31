@@ -43,45 +43,19 @@
 
         <h3 matSubheader>Status</h3>
 
-        <mat-list-item *ngFor="let on of (state?.device?.onOffStates || []); let i = index">
-          <span fxFlex (click)="snack('Service: ' + state!.device!.getOnOffServices[i].name)">On/Off</span>
-          <mat-icon [ngClass]="{'red': !on, 'green': on}">offline_bolt</mat-icon>
-        </mat-list-item>
-
-        <mat-list-item *ngFor="let battery of (state?.device?.batteryStates || []); let i = index">
-          <span fxFlex (click)="snack('Service: ' + state!.device!.getBatteryServices[i].name)">Battery</span>
-          <mat-icon (click)="snack(battery !== undefined ? battery + '%' : 'unknown')" color="accent">
-            {{getBatteryIcon(battery)}}
-          </mat-icon>
-        </mat-list-item>
-
-        <mat-list-item *ngFor="let consumption of (state?.device?.energyConsumptionStates || []); let i = index">
-          <span fxFlex (click)="snack('Service: ' + state!.device!.getEnergyConsumptionServices[i].name)">Energy Consumption</span>
-          <span>
-            {{consumption !== undefined ? consumption + ' kWh' : 'unknown'}}
+        <span *ngFor="let serviceConfig of getServiceConfigs()">
+          <mat-list-item
+            *ngFor="let value of (state?.device?.measuringStates?.get(serviceConfig.id) || []); let i = index">
+          <span fxFlex (click)="snack('Service: ' + ((state.device!.measuringServices!.get(serviceConfig.id) || [])[i]?.name || ''))">
+            {{serviceConfig.displayName}}
           </span>
-        </mat-list-item>
 
-        <mat-list-item *ngFor="let consumption of (state?.device?.powerConsumptionStates || []); let i = index">
-          <span fxFlex (click)="snack('Service: ' + state!.device!.getPowerConsumptionServices[i].name)">Power Consumption</span>
-          <span>
-            {{consumption !== undefined ? consumption + ' W' : 'unknown'}}
-          </span>
+          <mat-icon *ngIf="serviceConfig.getIcon !== undefined"
+                    [class]="serviceConfig.getIcon(value)?.class || ''"
+                    (click)="snack(value !== undefined ? value.toString() + (serviceConfig.unit || '') : 'unknown')">{{serviceConfig.getIcon(value).icon}}</mat-icon>
+            <span *ngIf="serviceConfig.getIcon === undefined">{{value}} {{serviceConfig.unit || ''}}</span>
         </mat-list-item>
-
-        <mat-list-item *ngFor="let temp of (state?.device?.temperatureStates || []); let i = index">
-          <span fxFlex (click)="snack('Service: ' + state!.device!.getTemperatureServices[i].name)">Temperature</span>
-          <span>
-            {{temp !== undefined ? temp + ' °C' : 'unknown'}}
-          </span>
-        </mat-list-item>
-
-        <mat-list-item *ngFor="let temp of (state?.device?.targetTemperatureStates || []); let i = index">
-          <span fxFlex (click)="snack('Service: ' + state!.device!.getTargetTemperatureServices[i].name)">Target Temperature</span>
-          <span>
-            {{temp !== undefined ? temp + ' °C' : 'unknown'}}
-          </span>
-        </mat-list-item>
+        </span>
 
       </mat-list>
 
