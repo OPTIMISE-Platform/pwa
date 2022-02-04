@@ -17,6 +17,8 @@
 import {Component, OnInit} from '@angular/core';
 import {AuthorizationService} from "../../services/authorization.service";
 import {ToolbarService} from "./toolbar.service";
+import {ConfirmationDialogService} from "../confirmation-dialog/confirmation-dialog.service";
+import {CacheService} from "../../cache.service";
 
 @Component({
   selector: 'app-toolbar',
@@ -30,6 +32,8 @@ export class ToolbarComponent implements OnInit {
   constructor(
     private authorizationService: AuthorizationService,
     private toolBarService: ToolbarService,
+    private confirmationDialogService: ConfirmationDialogService,
+    private cacheService: CacheService,
   ) { }
 
   ngOnInit(): void {
@@ -39,5 +43,13 @@ export class ToolbarComponent implements OnInit {
 
   logout() {
     this.authorizationService.logout();
+  }
+
+  clearCache() {
+    this.confirmationDialogService.openConfirmationDialog("Clear Cache", "Do you want to clear the cache?").subscribe(resp => {
+      if (resp) {
+        this.cacheService.clearCache();
+      }
+    })
   }
 }

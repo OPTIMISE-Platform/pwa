@@ -26,10 +26,13 @@ import {FlexLayoutModule} from "@angular/flex-layout";
 import {RouterModule} from "@angular/router";
 import {MatSnackBarModule} from "@angular/material/snack-bar";
 import {MatProgressBarModule} from "@angular/material/progress-bar";
+import {ConfirmationDialogComponent} from "./components/confirmation-dialog/confirmation-dialog.component";
+import {MatDialogModule} from "@angular/material/dialog";
 
 @NgModule({
   declarations: [
-    ToolbarComponent
+    ToolbarComponent,
+    ConfirmationDialogComponent,
   ],
   exports: [
     ToolbarComponent
@@ -45,6 +48,7 @@ import {MatProgressBarModule} from "@angular/material/progress-bar";
     RouterModule,
     MatSnackBarModule,
     MatProgressBarModule,
+    MatDialogModule,
   ]
 })
 export class CoreModule { }

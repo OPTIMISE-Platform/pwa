@@ -26,6 +26,7 @@ import {
   DeviceTypePermSearchModel
 } from "./devices.model";
 import {measuringFunctions} from "../../core/function-configs";
+import {CacheService} from "../../core/cache.service";
 
 @Injectable({
   providedIn: 'root'
@@ -39,6 +40,7 @@ export class MetadataService {
 
   constructor(private http: HttpClient,
               private errorHandlerService: ErrorHandlerService,
+              private cacheService: CacheService,
   ) {
   }
 
@@ -65,6 +67,12 @@ export class MetadataService {
                     offset: number,
                     sortBy: string,
                     sortOrder: string): Observable<DeviceTypePermSearchModel[]> {
+    const key = 'deviceTypeList';
+    const local = this.cacheService.fromCache<DeviceTypePermSearchModel[]>(key);
+    if (local !== undefined) {
+      return of(local);
+    }
+
     return this.http
       .get<DeviceTypePermSearchModel[]>(
         environment.apiUrl + "/permissions/query/v3/resources" +
@@ -77,19 +85,22 @@ export class MetadataService {
         '.' +
         sortOrder).pipe(
         map((resp) => resp || []),
+        map(resp => {
+          this.cacheService.toCache(key, resp,  60 * 60 * 1000); // cache for one hour
+          return resp;
+        }),
         catchError(this.errorHandlerService.handleError(MetadataService.name, 'getDeviceTypeList', [])),
       );
   }
 
   getDeviceTypeClass(id: string): Observable<DeviceTypeDeviceClassModel> {
-    const local = localStorage.getItem(this.localstoragePrefixDeviceTypeClass + id);
-    if (local !== null) {
-      const localParsed = JSON.parse(local)
-      if ((new Date().valueOf()) < localParsed.expires) {
-        delete localParsed.expires;
-        return of(localParsed);
-      }
+    const key = this.localstoragePrefixDeviceTypeClass + id;
+
+    const local = this.cacheService.fromCache<DeviceTypeDeviceClassModel>(key);
+    if (local !== undefined) {
+      return of(local);
     }
+
     return this.http
       .get<DeviceTypeDeviceClassModel[] | null>(
         environment.apiUrl + "/permissions/query/v3/resources" +
@@ -97,12 +108,8 @@ export class MetadataService {
           if (resp === null || resp.length === 0) {
             return {} as DeviceTypeDeviceClassModel;
           } else {
-            const result = resp[0] as any;
-            const expires = new Date();
-            result.expires = expires.valueOf() + 48 * 60 * 60 * 1000; // cache for two days
-            localStorage.setItem(this.localstoragePrefixDeviceTypeClass + id, JSON.stringify(result));
-            delete result.expires;
-            return result as DeviceTypeDeviceClassModel;
+            this.cacheService.toCache(key, resp[0], 48 * 60 * 60 * 1000) // cache for two days
+            return resp[0];
           }
         }),
         catchError(this.errorHandlerService.handleError(MetadataService.name, 'getDeviceTypeList', {} as DeviceTypeDeviceClassModel)),);
@@ -116,14 +123,11 @@ export class MetadataService {
       return s;
     }
 
-    let local = localStorage.getItem(key);
-    if (local !== null) {
-      const localParsed = JSON.parse(local);
-      if ((new Date().valueOf()) < localParsed.expires) {
-        delete localParsed.expires;
-        return of(localParsed);
-      }
+    const local = this.cacheService.fromCache<DeviceTypeModel>(key);
+    if (local !== undefined) {
+      return of(local);
     }
+
     s = new Subject<DeviceTypeModel>();
     this.http.get<DeviceTypeModel | null>(
       environment.apiUrl + "/device-manager/device-types/" + id
@@ -137,12 +141,8 @@ export class MetadataService {
           s.complete();
           return;
         } else {
-          const result = resp as any;
-          const expires = new Date();
-          result.expires = expires.valueOf() + 48 * 60 * 60 * 1000; // cache for two days
-          localStorage.setItem(key, JSON.stringify(result));
-          delete result.expires;
-          s.next(result as DeviceTypeModel);
+          this.cacheService.toCache(key, resp, 48 * 60 * 60 * 1000) // cache for two days
+          s.next(resp);
           s.complete();
         }
       },

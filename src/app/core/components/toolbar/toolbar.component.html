@@ -32,6 +32,11 @@
       {{userName}}
     </button>
     <mat-divider></mat-divider>
+    <button mat-menu-item (click)="clearCache()">
+      <mat-icon>bug_report</mat-icon>
+      Clear Cache
+    </button>
+    <mat-divider></mat-divider>
     <button mat-menu-item (click)="logout()">
       <mat-icon>power_settings_new</mat-icon>
       Logout
