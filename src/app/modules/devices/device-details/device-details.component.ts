@@ -24,6 +24,7 @@ import {getEmptyState, SharedStateModel} from "../state.model";
 import {SnackbarService} from "../../../core/services/snackbar.service";
 import {ToolbarService} from "../../../core/components/toolbar/toolbar.service";
 import {measuringFunctions} from "../../../core/function-configs";
+import {MetadataService} from "../metadata.service";
 
 
 @Component({
@@ -45,6 +46,7 @@ export class DeviceDetailsComponent implements OnInit {
   constructor(
     private devicesService: DevicesService,
     private devicesCommandService: DevicesCommandService,
+    private metadataService: MetadataService,
     private snackBarService: SnackbarService,
     private toolBarService: ToolbarService,
     private router: Router,
@@ -70,7 +72,7 @@ export class DeviceDetailsComponent implements OnInit {
           this.state.device = customDevice; // show basic info during loading
           this.getDeviceType().subscribe(deviceType => this.deviceType = deviceType);
           this.getClass().subscribe(deviceTypeClass => this.deviceTypeClass = deviceTypeClass);
-          this.devicesCommandService.fillDeviceFunctionServiceIds([customDevice]).subscribe(customDevices => {
+          this.metadataService.fillDeviceFunctionServiceIds([customDevice]).subscribe(customDevices => {
             this.devicesCommandService.fillDeviceState(customDevices).subscribe(customDevices => {
               this.state.device = customDevices[0];
               this.toolBarService.setLoading(false);
@@ -100,7 +102,7 @@ export class DeviceDetailsComponent implements OnInit {
       return of(this.deviceTypeClass);
     }
     return this.getDeviceType().pipe(
-      map(type => this.devicesService.getDeviceTypeClass(type?.device_class_id || '')),
+      map(type => this.metadataService.getDeviceTypeClass(type?.device_class_id || '')),
       mergeAll(),
       map(typeClass => typeClass)
     );
@@ -114,7 +116,7 @@ export class DeviceDetailsComponent implements OnInit {
     if (typeId === undefined) {
       return of(undefined);
     }
-    return this.devicesService.getFullDeviceType(typeId);
+    return this.metadataService.getFullDeviceType(typeId);
   }
 
   onTouchAdd($event: TouchEvent) {

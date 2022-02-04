@@ -15,7 +15,7 @@
  */
 
 import {Injectable} from '@angular/core';
-import {catchError, forkJoin, map, Observable, of, timeout} from "rxjs";
+import {catchError, map, Observable, of, timeout} from "rxjs";
 import {environment} from "../../../environments/environment";
 import {HttpClient} from "@angular/common/http";
 import {ErrorHandlerService} from "../../core/services/error-handler.service";
@@ -32,24 +32,6 @@ export class DevicesCommandService {
               private devicesService: DevicesService,
               private errorHandlerService: ErrorHandlerService,
   ) {
-  }
-
-  fillDeviceFunctionServiceIds(devices: CustomDeviceInstance[]): Observable<CustomDeviceInstance[]> {
-    const obs: Observable<CustomDeviceInstance>[] = [];
-
-    devices.forEach(device => {
-      obs.push(this.devicesService.getFullDeviceType(device.device_type_id).pipe(map(deviceType => {
-        measuringFunctions.forEach(functionConfig => {
-          device.measuringServices.set(functionConfig.id, deviceType.services.filter(service => service.function_ids.some(functionId => functionId === functionConfig.id)));
-        });
-
-
-        device.setOffServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.setOff));
-        device.setOnServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.setOn));
-        return device;
-      })));
-    });
-    return forkJoin(obs);
   }
 
   fillDeviceState(devices: CustomDeviceInstance[], onlySpecificType: string[] = []): Observable<CustomDeviceInstance[]> {

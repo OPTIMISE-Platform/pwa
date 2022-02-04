@@ -25,6 +25,7 @@ import {FormControl} from "@angular/forms";
 import {getEmptyState, SharedStateModel} from "../state.model";
 import {ToolbarService} from "../../../core/components/toolbar/toolbar.service";
 import {environment} from "../../../../environments/environment";
+import {MetadataService} from "../metadata.service";
 
 
 @Component({
@@ -50,6 +51,7 @@ export class DeviceListComponent implements OnInit {
   constructor(
     private devicesService: DevicesService,
     private devicesCommandService: DevicesCommandService,
+    private metadataService: MetadataService,
     private toolbarService: ToolbarService,
     private router: Router,
   ) {
@@ -96,7 +98,7 @@ export class DeviceListComponent implements OnInit {
 
   buildList(): Observable<null> {
     return new Observable<null>(obs => {
-      this.devicesService.getDeviceTypeList(9999, 0, "name", "asc").subscribe(deviceTypes => {
+      this.metadataService.getDeviceTypeList(9999, 0, "name", "asc").subscribe(deviceTypes => {
         deviceTypes.forEach(deviceType => {
           if (!this.state.classIdToTypeMap.has(deviceType.device_class_id)) {
             this.state.classIdToTypeMap.set(deviceType.device_class_id, []);
@@ -107,7 +109,7 @@ export class DeviceListComponent implements OnInit {
         });
         const obsList: Observable<any>[] = [];
         this.state.classIdToTypeMap.forEach((_, id) => {
-          obsList.push(this.devicesService.getDeviceTypeClass(id).pipe(map(deviceTypeDeviceClass => this.state.classIdToClassMap.set(id, deviceTypeDeviceClass))));
+          obsList.push(this.metadataService.getDeviceTypeClass(id).pipe(map(deviceTypeDeviceClass => this.state.classIdToClassMap.set(id, deviceTypeDeviceClass))));
         });
         if (obsList.length === 0) {
           obs.complete();
@@ -131,7 +133,7 @@ export class DeviceListComponent implements OnInit {
       if (devices.length > 0) {
         this.state.classOffset += devices.length;
         const customDevices = devices.map(x => this.devicesService.permInstanceToCustom(x));
-        this.devicesCommandService.fillDeviceFunctionServiceIds(customDevices).subscribe(customDevices => {
+        this.metadataService.fillDeviceFunctionServiceIds(customDevices).subscribe(customDevices => {
           this.devicesCommandService.fillDeviceState(customDevices, [environment.functions.getOnOff]).subscribe(customDevices => {
             this.state.devices.push(...customDevices);
             this.toolbarService.setLoading(false);
