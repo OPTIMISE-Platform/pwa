@@ -125,6 +125,7 @@ export class DeviceListComponent implements OnInit {
 
   loadDevices(limit: number) {
     if (this.state.deviceClassIdArrIndex >= this.state.deviceClassIdArr.length) {
+      this.toolbarService.setLoading(false);
       return; // list exhausted
     }
     this.toolbarService.setLoading(true);

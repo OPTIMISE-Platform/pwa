@@ -20,13 +20,18 @@ import {environment} from "../../../environments/environment";
 import {HttpClient} from "@angular/common/http";
 import {ErrorHandlerService} from "../../core/services/error-handler.service";
 import {CustomDeviceInstance, DeviceInstancesPermSearchModel} from "./devices.model";
+import {CacheService} from "../../core/cache.service";
 
 @Injectable({
   providedIn: 'root'
 })
 export class DevicesService {
+  cachePrefixDevices = 'devices/';
+  cachePrefixDeviceCount = 'devices-count/';
+
   constructor(private http: HttpClient,
               private errorHandlerService: ErrorHandlerService,
+              private cacheService: CacheService,
   ) {
   }
 
@@ -57,7 +62,21 @@ export class DevicesService {
       }
     ).pipe(
       map((resp) => resp || []),
-      catchError(this.errorHandlerService.handleError(DevicesService.name, 'getDeviceInstances', [])),
+      map(resp => {
+        resp.forEach(r => {
+          const cacheEntry = JSON.parse(JSON.stringify(r));
+          if (cacheEntry.annotations?.connected !== undefined) {
+            delete cacheEntry.annotations.connected;
+          }
+          this.cacheService.toCache(this.cachePrefixDevices + r.id, cacheEntry, 365 * 24 * 60 * 60 * 1000); // cache for up to one year
+        });
+        return resp;
+      }),
+      catchError(this.errorHandlerService.handleError(DevicesService.name, 'getDeviceInstances',
+        this.cacheService.fromCacheListByPrefix<DeviceInstancesPermSearchModel>(this.cachePrefixDevices).filter(d => {
+          return byDeviceTypes.some(dtId => dtId === d.device_type_id)
+            && (searchText !== null ? d.name.toLowerCase().includes(searchText.toLowerCase()) : true);
+        }), false)),
     );
   }
 
@@ -67,7 +86,16 @@ export class DevicesService {
     ).pipe(
       map((resp) => resp || []),
       map(resp => resp[0]),
-      catchError(this.errorHandlerService.handleError(DevicesService.name, 'getDeviceInstances', {} as DeviceInstancesPermSearchModel)),
+      map(resp => {
+          const cacheEntry = JSON.parse(JSON.stringify(resp));
+          if (cacheEntry.annotations?.connected !== undefined) {
+            delete cacheEntry.annotations.connected;
+          }
+          this.cacheService.toCache(this.cachePrefixDevices + resp.id, cacheEntry, 365 * 24 * 60 * 60 * 1000); // cache for up to one year
+        return resp;
+      }),
+      catchError(this.errorHandlerService.handleError(DevicesService.name, 'getDeviceInstances',
+        this.cacheService.fromCache(this.cachePrefixDevices + id) || {} as DeviceInstancesPermSearchModel, true)),
     );
   }
 
@@ -80,7 +108,12 @@ export class DevicesService {
         + (searchText !== null && searchText.length > 0 ? ('?search=' + searchText): '')
       ).pipe(
         map((resp) => resp || 0),
-        catchError(this.errorHandlerService.handleError(DevicesService.name, 'getDeviceTypeList', 0)),
+        map(resp => {
+          this.cacheService.toCache(this.cachePrefixDeviceCount + searchText, resp, 365 * 24 * 60 * 60 * 1000); // cache for up to one year
+          return resp;
+        }),
+        catchError(this.errorHandlerService.handleError(DevicesService.name, 'getDeviceTypeList',
+          this.cacheService.fromCache(this.cachePrefixDeviceCount + searchText) || 0, false)),
       )
   }
 

@@ -87,6 +87,6 @@ export class DevicesCommandService {
         }
       });
       return results;
-    }), catchError(this.errorHandlerService.handleError(DevicesService.name, 'runCommands', Array(commands.length).fill(undefined))));
+    }), catchError(this.errorHandlerService.handleError(DevicesService.name, 'runCommands', Array(commands.length).fill(undefined), true)));
   }
 }

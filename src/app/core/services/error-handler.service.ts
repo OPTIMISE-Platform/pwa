@@ -24,12 +24,14 @@ import {SnackbarService} from "./snackbar.service";
 export class ErrorHandlerService {
     constructor(private snackBarService: SnackbarService) {}
 
-  handleError<T>(service: string, method: string, result?: T) {
+  handleError<T>(service: string, method: string, result: T|undefined, snack: boolean) {
     return (error: any): Observable<T> => {
       console.error('Service: ' + service + ' =>> Method: ' + method);
       console.error(error);
 
-      this.snackBarService.snack("An error occurred");
+      if (snack) {
+        this.snackBarService.snack("An error occurred");
+      }
       return of(result as T);
     };
   }

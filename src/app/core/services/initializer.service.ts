@@ -23,6 +23,9 @@ export function initializerService(keycloak: KeycloakService): () => Promise<any
       if (e.type == KeycloakEventType.OnTokenExpired) {
         keycloak.updateToken(20);
       }
+      if (e.type == KeycloakEventType.OnAuthRefreshError) {
+        localStorage.clear();
+      }
     }
   });
 

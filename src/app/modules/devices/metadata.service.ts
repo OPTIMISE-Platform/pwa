@@ -35,8 +35,8 @@ export class MetadataService {
   getFullDeviceTypeSubjects: Map<string, Subject<DeviceTypeModel>> = new Map();
 
 
-  localstoragePrefixDeviceTypeClass = "deviceTypeClass/"
-  localstoragePrefixDeviceType = "deviceType/"
+  cachePrefixDeviceTypeClass = "deviceTypeClass/"
+  cachePrefixDeviceType = "deviceType/"
 
   constructor(private http: HttpClient,
               private errorHandlerService: ErrorHandlerService,
@@ -89,12 +89,12 @@ export class MetadataService {
           this.cacheService.toCache(key, resp,  60 * 60 * 1000); // cache for one hour
           return resp;
         }),
-        catchError(this.errorHandlerService.handleError(MetadataService.name, 'getDeviceTypeList', [])),
+        catchError(this.errorHandlerService.handleError(MetadataService.name, 'getDeviceTypeList', [], true)),
       );
   }
 
   getDeviceTypeClass(id: string): Observable<DeviceTypeDeviceClassModel> {
-    const key = this.localstoragePrefixDeviceTypeClass + id;
+    const key = this.cachePrefixDeviceTypeClass + id;
 
     const local = this.cacheService.fromCache<DeviceTypeDeviceClassModel>(key);
     if (local !== undefined) {
@@ -112,11 +112,11 @@ export class MetadataService {
             return resp[0];
           }
         }),
-        catchError(this.errorHandlerService.handleError(MetadataService.name, 'getDeviceTypeList', {} as DeviceTypeDeviceClassModel)),);
+        catchError(this.errorHandlerService.handleError(MetadataService.name, 'getDeviceTypeList', {} as DeviceTypeDeviceClassModel, true)),);
   }
 
   getFullDeviceType(id: string): Observable<DeviceTypeModel> {
-    const key = this.localstoragePrefixDeviceType + id;
+    const key = this.cachePrefixDeviceType + id;
 
     let s = this.getFullDeviceTypeSubjects.get(key);
     if (s !== undefined) {
@@ -146,7 +146,7 @@ export class MetadataService {
           s.complete();
         }
       },
-      catchError(this.errorHandlerService.handleError(MetadataService.name, 'getDeviceTypeList', {} as DeviceTypeModel)),
+      catchError(this.errorHandlerService.handleError(MetadataService.name, 'getDeviceTypeList', {} as DeviceTypeModel, true)),
     );
 
     this.getFullDeviceTypeSubjects.set(key, s);

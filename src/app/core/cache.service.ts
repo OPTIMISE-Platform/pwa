@@ -50,6 +50,20 @@ export class CacheService {
     return undefined;
   }
 
+  fromCacheListByPrefix<T>(prefix: string): T[] {
+    const result: T[] = [];
+    for (const key in localStorage){
+      if (!key.startsWith(prefix)) {
+        continue;
+      }
+      const entry = this.fromCache<T>(key);
+      if (entry !== undefined) { // might have expired
+        result.push(entry);
+      }
+    }
+    return result;
+  }
+
   toCache(key: string, value: any, timeoutMs: number): void {
     const expires = new Date();
     const entry: CacheEntryModel = {

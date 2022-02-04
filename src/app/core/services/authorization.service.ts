@@ -17,12 +17,13 @@
 import {Injectable} from '@angular/core';
 import {KeycloakService} from 'keycloak-angular';
 import {KeycloakProfile} from "keycloak-js";
+import {CacheService} from "../cache.service";
 
 @Injectable({
     providedIn: 'root',
 })
 export class AuthorizationService {
-    constructor(private keycloakService: KeycloakService) {}
+    constructor(private keycloakService: KeycloakService, private cacheService: CacheService) {}
 
     getUserId(): string | Error {
         const sub = localStorage.getItem('sub');
@@ -55,6 +56,6 @@ export class AuthorizationService {
     }
 
     logout() {
-        this.keycloakService.logout();
+        this.keycloakService.logout().then(() => this.cacheService.clearCache());
     }
 }
