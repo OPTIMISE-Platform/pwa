@@ -37,6 +37,7 @@ export class DeviceDetailsComponent implements OnInit {
   deviceTypeClass: DeviceTypeDeviceClassModel | undefined;
   deviceType: DeviceTypePermSearchModel | DeviceTypeModel | undefined;
   stateCreated = false;
+  emptyMap = new Map();
 
   touches: Touch[] = [];
   swipeUpThreshold = 100;
@@ -172,5 +173,26 @@ export class DeviceDetailsComponent implements OnInit {
 
   getServiceConfigs() {
     return measuringFunctions;
+  }
+
+  getDisplayName(functionId: string) {
+    const f = this.metadataService.getFunction(functionId);
+    return f?.display_name || f?.name;
+  }
+
+  getDisplayUnit(functionId: string) {
+    return this.metadataService.getFunction(functionId)?.concept.base_characteristic.display_unit;
+  }
+
+  hasIcon(functionId: string) {
+    return measuringFunctions[functionId]?.getIcon !== undefined;
+  }
+
+  getIcon(functionId: string, value: any): {icon: string, class: string} {
+    const f = measuringFunctions[functionId];
+    if (f === undefined || f.getIcon === undefined) {
+      return {icon: '', class: ''};
+    }
+    return f.getIcon(value);
   }
 }

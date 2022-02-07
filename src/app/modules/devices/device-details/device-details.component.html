@@ -43,17 +43,20 @@
 
         <h3 matSubheader>Status</h3>
 
-        <span *ngFor="let serviceConfig of getServiceConfigs()">
-          <mat-list-item
-            *ngFor="let value of (state?.device?.measuringStates?.get(serviceConfig.id) || []); let i = index">
-          <span fxFlex (click)="snack('Service: ' + ((state.device!.measuringServices!.get(serviceConfig.id) || [])[i]?.name || ''))">
-            {{serviceConfig.displayName}}
+
+        <span *ngFor="let functionStates of (state?.device?.functionStates || emptyMap) | keyvalue">
+          <mat-list-item *ngFor="let value of functionStates.value; let i = index">
+          <span fxFlex
+                (click)="snack('Service: ' + ((state.device!.functionServices!.get(functionStates.key) || [])[i]?.name || ''))">
+            {{getDisplayName(functionStates.key)}}
           </span>
 
-          <mat-icon *ngIf="serviceConfig.getIcon !== undefined"
-                    [class]="serviceConfig.getIcon(value)?.class || ''"
-                    (click)="snack(value !== undefined ? value.toString() + (serviceConfig.unit || '') : 'unknown')">{{serviceConfig.getIcon(value).icon}}</mat-icon>
-            <span *ngIf="serviceConfig.getIcon === undefined">{{value}} {{serviceConfig.unit || ''}}</span>
+
+          <mat-icon *ngIf="hasIcon(functionStates.key)"
+                    [class]="getIcon(functionStates.key, value).class"
+                    (click)="snack(value !== undefined ? value.toString() + (getDisplayUnit(functionStates.key)) : 'unknown')">{{getIcon(functionStates.key, value).icon}}</mat-icon>
+            <span *ngIf="!hasIcon(functionStates.key)">{{value}} {{getDisplayUnit(functionStates.key)}}</span>
+
         </mat-list-item>
         </span>
 

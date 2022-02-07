@@ -14,29 +14,32 @@
  * limitations under the License.
  */
 
-import {Injectable} from '@angular/core';
-import {catchError, forkJoin, map, Observable, of, Subject} from "rxjs";
+import {Injectable, OnDestroy} from '@angular/core';
+import {catchError, forkJoin, map, mergeAll, Observable, of, Subject} from "rxjs";
 import {environment} from "../../../environments/environment";
 import {HttpClient} from "@angular/common/http";
 import {ErrorHandlerService} from "../../core/services/error-handler.service";
 import {
   CustomDeviceInstance,
   DeviceTypeDeviceClassModel,
+  DeviceTypeExtendedFunctionModel,
   DeviceTypeModel,
   DeviceTypePermSearchModel
 } from "./devices.model";
-import {measuringFunctions} from "../../core/function-configs";
 import {CacheService} from "../../core/cache.service";
 
 @Injectable({
   providedIn: 'root'
 })
-export class MetadataService {
+export class MetadataService implements OnDestroy {
   getFullDeviceTypeSubjects: Map<string, Subject<DeviceTypeModel>> = new Map();
+  getFunctionsSubject: Subject<DeviceTypeExtendedFunctionModel[]> | undefined;
 
 
   cachePrefixDeviceTypeClass = "deviceTypeClass/"
   cachePrefixDeviceType = "deviceType/"
+  cachePrefixFunction = "function/"
+  cacheKeyFunctionList = "function-list"
 
   constructor(private http: HttpClient,
               private errorHandlerService: ErrorHandlerService,
@@ -44,23 +47,38 @@ export class MetadataService {
   ) {
   }
 
+  ngOnDestroy() {
+    this.getFunctionsSubject?.complete();
+    this.getFullDeviceTypeSubjects.forEach(s => s.complete());
+  }
+
 
   fillDeviceFunctionServiceIds(devices: CustomDeviceInstance[]): Observable<CustomDeviceInstance[]> {
-    const obs: Observable<CustomDeviceInstance>[] = [];
+    return new Observable<CustomDeviceInstance[]>(o => {
+      this.getFunctions().pipe(map(functions => {
+          const obs: Observable<CustomDeviceInstance>[] = [];
+          devices.forEach(device => {
+            obs.push(this.getFullDeviceType(device.device_type_id).pipe(map(deviceType => {
+              functions.forEach(functionConfig => {
+                const services = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === functionConfig.id)); // possible improvement: generate once per device type
+                if (services.length > 0) {
+                  device.functionServices.set(functionConfig.id, services);
+                }
+              });
 
-    devices.forEach(device => {
-      obs.push(this.getFullDeviceType(device.device_type_id).pipe(map(deviceType => {
-        measuringFunctions.forEach(functionConfig => {
-          device.measuringServices.set(functionConfig.id, deviceType.services.filter(service => service.function_ids.some(functionId => functionId === functionConfig.id)));
-        });
-
-
-        device.setOffServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.setOff));
-        device.setOnServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.setOn));
-        return device;
-      })));
+              device.setOffServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.setOff));
+              device.setOnServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.setOn));
+              return device;
+            })));
+          });
+          return forkJoin(obs);
+        }),
+        mergeAll(),
+        map(devices => {
+          o.next(devices);
+          o.complete();
+        })).subscribe();
     });
-    return forkJoin(obs);
   }
 
   getDeviceTypeList(limit: number,
@@ -86,7 +104,7 @@ export class MetadataService {
         sortOrder).pipe(
         map((resp) => resp || []),
         map(resp => {
-          this.cacheService.toCache(key, resp,  60 * 60 * 1000); // cache for one hour
+          this.cacheService.toCache(key, resp, 60 * 60 * 1000); // cache for one hour
           return resp;
         }),
         catchError(this.errorHandlerService.handleError(MetadataService.name, 'getDeviceTypeList', [], true)),
@@ -151,5 +169,44 @@ export class MetadataService {
 
     this.getFullDeviceTypeSubjects.set(key, s);
     return s;
+  }
+
+  getFunctions(): Observable<DeviceTypeExtendedFunctionModel[]> {
+    if (this.getFunctionsSubject !== undefined) {
+      return this.getFunctionsSubject;
+    }
+
+    const needsReload = this.cacheService.fromCache(this.cacheKeyFunctionList) === undefined;
+    if (!needsReload) {
+      return of(this.cacheService.fromCacheListByPrefix<DeviceTypeExtendedFunctionModel>(this.cachePrefixFunction));
+    }
+
+    this.getFunctionsSubject = new Subject<DeviceTypeExtendedFunctionModel[]>();
+
+    this.http.get<DeviceTypeExtendedFunctionModel[] | null>(
+      environment.apiUrl + "/api-aggregator/nested-function-infos"
+    ).pipe(map(resp => resp || []),
+      map(resp => {
+        resp.forEach(r => {
+          this.cacheService.toCache(this.cachePrefixFunction + r.id, r, 48 * 60 * 60 * 1000) // cache for two days
+        });
+        this.cacheService.toCache(this.cacheKeyFunctionList, null, 48 * 60 * 60 * 1000); // cache for two days
+        return resp;
+      }),
+      catchError(this.errorHandlerService.handleError(MetadataService.name, 'getFunctions', this.cacheService.fromCacheListByPrefix<DeviceTypeExtendedFunctionModel>(this.cachePrefixFunction), true)),
+    ).subscribe(result => {
+      this.getFunctionsSubject?.next(result);
+      this.getFunctionsSubject?.complete();
+      this.getFunctionsSubject = undefined;
+    });
+    return this.getFunctionsSubject;
+  }
+
+  getFunction(id: string): DeviceTypeExtendedFunctionModel | undefined {
+    return this.cacheService.fromCache(this.cachePrefixFunction + id);
+  }
+
+  isMeasuringFunction(f?: DeviceTypeExtendedFunctionModel) {
+    return f !== undefined && f.id.startsWith(environment.measuringFunctionPrefix);
   }
 }

@@ -71,4 +71,5 @@ export const environment = {
     getWaterLevelFunction: 'urn:infai:ses:measuring-function:487b35ef-4a10-4305-9514-a00f71c5850a',
     getUltravioletFunction: 'urn:infai:ses:measuring-function:be920197-3eae-4625-8373-ae82b86f21da',
   },
+  measuringFunctionPrefix: 'urn:infai:ses:measuring-function:',
 };

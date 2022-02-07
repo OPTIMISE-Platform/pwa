@@ -22,6 +22,7 @@ import {ErrorHandlerService} from "../../core/services/error-handler.service";
 import {DevicesService} from "./devices.service";
 import {CustomDeviceInstance} from "./devices.model";
 import {measuringFunctions} from "../../core/function-configs";
+import {MetadataService} from "./metadata.service";
 
 @Injectable({
   providedIn: 'root'
@@ -31,10 +32,11 @@ export class DevicesCommandService {
   constructor(private http: HttpClient,
               private devicesService: DevicesService,
               private errorHandlerService: ErrorHandlerService,
+              private metadataService: MetadataService,
   ) {
   }
 
-  fillDeviceState(devices: CustomDeviceInstance[], onlySpecificType: string[] = []): Observable<CustomDeviceInstance[]> {
+  fillDeviceState(devices: CustomDeviceInstance[], onlySpecificFunctions: string[] = []): Observable<CustomDeviceInstance[]> {
     const commands: { function_id: string; device_id: string; service_id: string; input?: any }[] = [];
     const commandFunctionMapper: string[] = [];
     const commandDeviceMapper: number[] = [];
@@ -45,13 +47,17 @@ export class DevicesCommandService {
         return;
       }
 
-      measuringFunctions.forEach(functionConfig => {
-        if (onlySpecificType.length === 0 || onlySpecificType.some(f => f === functionConfig.id)) {
-          device.measuringServices.get(functionConfig.id)?.forEach(service => {
-            commands.push({function_id: functionConfig.id, device_id: device.id, service_id: service.id});
-            commandFunctionMapper.push(functionConfig.id);
+      device.functionServices.forEach((services, functionId) => {
+        const f = this.metadataService.getFunction(functionId);
+        if (!this.metadataService.isMeasuringFunction(f)) {
+          return;
+        }
+        if (onlySpecificFunctions.length === 0 || onlySpecificFunctions.some(t => t === functionId)) {
+          services.forEach(service => {
+            commands.push({function_id: functionId, device_id: device.id, service_id: service.id});
+            commandFunctionMapper.push(functionId);
             commandDeviceMapper.push(i);
-            commandTransformMapper.push(functionConfig.transform);
+            commandTransformMapper.push(measuringFunctions[functionId]?.transform);
           });
         }
       });
@@ -64,11 +70,11 @@ export class DevicesCommandService {
 
     return this.runCommands(commands).pipe(map(results => {
       results.forEach((result: any, i: number) => {
-        if (!devices[commandDeviceMapper[i]].measuringStates.has(commandFunctionMapper[i])) {
-          devices[commandDeviceMapper[i]].measuringStates.set(commandFunctionMapper[i], []);
+        if (!devices[commandDeviceMapper[i]].functionStates.has(commandFunctionMapper[i])) {
+          devices[commandDeviceMapper[i]].functionStates.set(commandFunctionMapper[i], []);
         }
         const transformer = commandTransformMapper[i];
-        devices[commandDeviceMapper[i]].measuringStates.get(commandFunctionMapper[i])?.push(
+        devices[commandDeviceMapper[i]].functionStates.get(commandFunctionMapper[i])?.push(
           transformer !== undefined ? transformer(result) : result
         );
       });

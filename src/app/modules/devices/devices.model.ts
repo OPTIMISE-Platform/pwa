@@ -16,8 +16,8 @@
 
 export interface CustomDeviceInstance extends DeviceInstancesPermSearchModel {
   // Measuring
-  measuringServices: Map<string, DeviceTypeServiceModel[]>;
-  measuringStates: Map<string, any[]>;
+  functionServices: Map<string, DeviceTypeServiceModel[]>;
+  functionStates: Map<string, any[]>;
 
   // Controlling
   setOnServices: DeviceTypeServiceModel[];
@@ -132,4 +132,46 @@ export enum DeviceTypeInteractionEnum {
   Event = 'event',
   Request = 'request',
   EventAndRequest = 'event+request',
+}
+
+export interface DeviceTypeConceptModel {
+  id: string;
+  name: string;
+  base_characteristic_id: string;
+  characteristic_ids: string[];
+}
+
+export interface DeviceTypeExtendedConceptModel extends DeviceTypeConceptModel {
+  base_characteristic: DeviceTypeCharacteristicsModel;
+}
+
+export interface DeviceTypeCharacteristicsModel {
+  id?: string;
+  name: string;
+  display_unit: string;
+  type: string;
+  rdf_type?: string;
+  min_value?: number;
+  max_value?: number;
+  value?: string | boolean | number;
+  sub_characteristics?: DeviceTypeCharacteristicsModel[] | null;
+}
+
+export interface DeviceTypeFunctionModel {
+  id: string;
+  name: string;
+  display_name: string;
+  description: string;
+  rdf_type: string;
+  concept_id: string;
+}
+
+export interface DeviceTypeFunctionType {
+  text: string;
+  rdf_type: string;
+  urn_part: string;
+}
+
+export interface DeviceTypeExtendedFunctionModel extends DeviceTypeFunctionModel {
+  concept: DeviceTypeExtendedConceptModel;
 }

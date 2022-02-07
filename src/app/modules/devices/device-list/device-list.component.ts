@@ -189,14 +189,14 @@ export class DeviceListComponent implements OnInit {
     deviceIndex += this.lowerOffset;
     const device = this.state.devices[deviceIndex];
 
-    if ((device.measuringStates.get(environment.functions.getOnOff) || [])[0] === undefined) {
+    if ((device.functionStates.get(environment.functions.getOnOff) || [])[0] === undefined) {
       console.warn("Can't toggle device with unknown status");
       return;
     }
 
     let functionId;
     let serviceId;
-    if ((device.measuringStates.get(environment.functions.getOnOff) || [])[0] === true) {
+    if ((device.functionStates.get(environment.functions.getOnOff) || [])[0] === true) {
       functionId = environment.functions.setOff;
       serviceId = device.setOffServices[0]?.id;
     } else {
@@ -210,7 +210,7 @@ export class DeviceListComponent implements OnInit {
     this.devicesCommandService.runCommands([{function_id: functionId, device_id: device.id, service_id: serviceId}]).subscribe(result => {
       const currentIndex = this.state.devices.findIndex(x => x.id === device.id); // pagination might have changed this
       if (currentIndex !== -1) {
-        (this.state.devices[currentIndex].measuringStates.get(environment.functions.getOnOff) || [{}])[0] = result[0];
+        (this.state.devices[currentIndex].functionStates.get(environment.functions.getOnOff) || [{}])[0] = result[0];
       }
     });
   }
@@ -236,10 +236,10 @@ export class DeviceListComponent implements OnInit {
   }
 
   getOnOffServices(device: CustomDeviceInstance) {
-    return device.measuringServices.get(environment.functions.getOnOff);
+    return device.functionServices.get(environment.functions.getOnOff);
   }
 
   getOnOffStates(device: CustomDeviceInstance) {
-    return device.measuringStates.get(environment.functions.getOnOff);
+    return device.functionStates.get(environment.functions.getOnOff);
   }
 }

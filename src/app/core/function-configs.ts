@@ -16,18 +16,9 @@
 
 import {environment} from "../../environments/environment";
 
-export interface FunctionConfigModel {
-  id: string;
-  displayName: string;
-  unit?: string;
 
-  getIcon?(value?: any): ({ icon: string, class: string });
-  transform?(value?: any): string;
-}
-
-export const measuringFunctions: FunctionConfigModel[] = [
-  {
-    id: environment.functions.getOnOff,
+export const measuringFunctions = {
+  [environment.functions.getOnOff]: {
     displayName: 'On/Off',
     getIcon(value?: boolean): { icon: string; class: string } {
       if (value) {
@@ -36,8 +27,7 @@ export const measuringFunctions: FunctionConfigModel[] = [
       return {class: 'red', icon: 'offline_bolt'};
     }
   },
-  {
-    id: environment.functions.getBattery,
+  [environment.functions.getBattery]: {
     displayName: 'Battery',
     getIcon(value?: number): { icon: string; class: string } {
       if (value === undefined) {
@@ -50,28 +40,7 @@ export const measuringFunctions: FunctionConfigModel[] = [
     },
     unit: '%'
   },
-  {
-    id: environment.functions.getEnergyConsumption,
-    displayName: 'Energy Consumption',
-    unit: 'kWh'
-  },
-  {
-    id: environment.functions.getPowerConsumption,
-    displayName: 'Power Consumption',
-    unit: 'W'
-  },
-  {
-    id: environment.functions.getTemperature,
-    displayName: 'Temperature',
-    unit: '°C'
-  },
-  {
-    id: environment.functions.getTargetTemperature,
-    displayName: 'Target Temperature',
-    unit: '°C'
-  },
-  {
-    id: environment.functions.getAlarm,
+  [environment.functions.getAlarm]: {
     displayName: 'Alarm',
     getIcon(value?: boolean): { icon: string; class: string } {
       if (value) {
@@ -80,23 +49,7 @@ export const measuringFunctions: FunctionConfigModel[] = [
       return {class: 'red', icon: 'notification_important'};
     }
   },
-  {
-    id: environment.functions.getBrightness,
-    displayName: 'Brightness',
-    unit: '%'
-  },
-  {
-    id: environment.functions.getCarbonDioxid,
-    displayName: 'CO₂',
-    unit: 'ppm'
-  },
-  {
-    id: environment.functions.getCarbonMonoxid,
-    displayName: 'CO',
-    unit: 'µg/m³'
-  },
-  {
-    id: environment.functions.getColor,
+  [environment.functions.getColor]: {
     displayName: 'Color',
     transform(value?: any): string {
       if (value === undefined) {
@@ -105,170 +58,21 @@ export const measuringFunctions: FunctionConfigModel[] = [
       return JSON.stringify(value);
     }
   },
-  {
-    id: environment.functions.getContact,
-    displayName: 'Contact',
-  },
-  {
-    id: environment.functions.getCurrentConsumption,
-    displayName: 'Current Consumption',
-    unit: 'A',
-  },
-  {
-    id: environment.functions.getCurrent,
-    displayName: 'Current',
-    unit: 'V',
-  },
-  {
-    id: environment.functions.getEnergyProduction,
-    displayName: 'Energy Production',
-    unit: 'kWh',
-  },
-  {
-    id: environment.functions.getFrequency,
-    displayName: 'Frequency',
-    unit: 'Hz',
-  },
-  {
-    id: environment.functions.getHumidity,
-    displayName: 'Humidity (rel.)',
-    unit: '%',
-  },
-  {
-    id: environment.functions.getLatitude,
-    displayName: 'Latitude',
-    unit: '°',
-  },
-  {
-    id: environment.functions.getLongitude,
-    displayName: 'Longitude',
-    unit: '°',
-  },
-  {
-    id: environment.functions.getLuminiscence,
-    displayName: 'Luminiscence',
-    unit: 'lx',
-  },
-  {
-    id: environment.functions.getMotionState,
-    displayName: 'Motion State',
-  },
-  {
-    id: environment.functions.getNitrogenDioxide,
-    displayName: 'Nitrogen Dioxide',
-    unit: 'µg/m³'
-  },
-  {
-    id: environment.functions.getOscillationState,
-    displayName: 'Oscillation State',
-  },
-  {
-    id: environment.functions.getOzone,
-    displayName: 'Ozone',
-    unit: 'µg/m³'
-  },
-  {
-    id: environment.functions.getParticleAmountPM1,
-    displayName: 'PM1',
-    unit: 'ppm'
-  },
-  {
-    id: environment.functions.getParticleAmountPM10,
-    displayName: 'PM 10',
-    unit: 'ppm'
-  },
-  {
-    id: environment.functions.getParticleAmountPM10AS,
-    displayName: 'PM 10 AS',
-    unit: 'ppm'
-  },
-  {
-    id: environment.functions.getParticleAmountPM10BAP,
-    displayName: 'PM 10 BAP',
-    unit: 'ppm'
-  },
-  {
-    id: environment.functions.getParticleAmountPM10CD,
-    displayName: 'PM 10 CD',
-    unit: 'ppm'
-  },
-  {
-    id: environment.functions.getParticleAmountPM10NI,
-    displayName: 'PM 10 NI',
-    unit: 'ppm'
-  },
-  {
-    id: environment.functions.getParticleAmountPM10PB,
-    displayName: 'PM 10 PB',
-    unit: 'ppm'
-  },
-  {
-    id: environment.functions.getParticleAmountPM25,
-    displayName: 'PM 2.5',
-    unit: 'ppm'
-  },
-  {
-    id: environment.functions.getPowerFactorFunction,
-    displayName: 'Power Factor',
-    unit: 'cos ᵠ'
-  },
-  {
-    id: environment.functions.getPressureFunction,
-    displayName: 'Pressure',
-    unit: 'hPa'
-  },
-  {
-    id: environment.functions.getSpeedFunction,
-    displayName: 'Speed',
-    unit: 'm/s'
-  },
-  {
-    id: environment.functions.getSpeedLevelFunction,
-    displayName: 'Speed Level',
-    unit: 'rpm'
-  },
-  {
-    id: environment.functions.getTamperStateFunction,
-    displayName: 'Tamper State',
-  },
-  {
-    id: environment.functions.getTimestampFunction,
+  [environment.functions.getTimestampFunction]: {
     displayName: 'Timestamp',
     transform(value?: any): string {
       if (value === undefined) {
         return 'unknown';
       }
-      return new Date(Date.parse(value)).toLocaleString();
+      return new Date(Date.parse(value)).toLocaleString(undefined, {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "numeric",
+          minute: "numeric",
+          second: "numeric"
+        }
+      );
     }
   },
-  {
-    id: environment.functions.getUptimeFunction,
-    displayName: 'Uptime',
-    unit: 's',
-  },
-  {
-    id: environment.functions.getVoltageFunction,
-    displayName: 'Voltage',
-    unit: 'V',
-  },
-  {
-    id: environment.functions.getVolumeFlowFunction,
-    displayName: 'Volume Flow',
-    unit: 'm³/h',
-  },
-  {
-    id: environment.functions.getVolumeFunction,
-    displayName: 'Volume',
-    unit: 'm³',
-  },
-  {
-    id: environment.functions.getWaterLevelFunction,
-    displayName: 'Water Level',
-    unit: 'cm',
-  },
-  {
-    id: environment.functions.getUltravioletFunction,
-    displayName: 'UV Index',
-  },
-
-];
+};

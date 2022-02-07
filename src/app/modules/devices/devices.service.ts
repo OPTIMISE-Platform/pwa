@@ -81,11 +81,16 @@ export class DevicesService {
   }
 
   getDeviceInstance(id: string): Observable<DeviceInstancesPermSearchModel> {
-    return this.http.get<DeviceInstancesPermSearchModel[]>(
+    return this.http.get<DeviceInstancesPermSearchModel[] | null>(
       environment.apiUrl + "/permissions/query/v3/resources/devices?ids=" + id,
     ).pipe(
       map((resp) => resp || []),
-      map(resp => resp[0]),
+      map(resp => {
+        if (resp.length !== 1) {
+          throw "could not get device";
+        }
+        return resp[0];
+      }),
       map(resp => {
           const cacheEntry = JSON.parse(JSON.stringify(resp));
           if (cacheEntry.annotations?.connected !== undefined) {
@@ -122,9 +127,8 @@ export class DevicesService {
 
   permInstanceToCustom(device: DeviceInstancesPermSearchModel): CustomDeviceInstance {
     const customDevice = device as CustomDeviceInstance;
-    customDevice.measuringServices = new Map();
-    customDevice.measuringStates = new Map();
-
+    customDevice.functionServices = new Map();
+    customDevice.functionStates = new Map();
 
     customDevice.setOnServices = [];
     customDevice.setOffServices = [];
@@ -132,7 +136,7 @@ export class DevicesService {
   }
 
   resetStates(device: CustomDeviceInstance): CustomDeviceInstance {
-    device.measuringStates = new Map();
+    device.functionStates = new Map();
     return device;
   }
 }
