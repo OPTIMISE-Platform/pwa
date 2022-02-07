@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {CustomDeviceInstance} from "../devices.model";
 import {DevicesService} from "../devices.service";
 import {debounceTime, forkJoin, map, Observable} from "rxjs";
@@ -33,7 +33,7 @@ import {MetadataService} from "../metadata.service";
   templateUrl: './device-list.component.html',
   styleUrls: ['./device-list.component.css']
 })
-export class DeviceListComponent implements OnInit {
+export class DeviceListComponent implements OnInit, AfterViewInit {
   state: SharedStateModel;
 
   pageSize = 20;
@@ -81,6 +81,24 @@ export class DeviceListComponent implements OnInit {
       this.loadDevices(this.pageSize);
       this.devicesService.getTotalNumberDevices(value).subscribe(d => this.state.maxElements = d);
     });
+  }
+
+  ngAfterViewInit() {
+    const target = this.state.listScrollOffset;
+    const scroll = ()=> {
+      const container = document.getElementById('container');
+      if (container === null) {
+        setTimeout(scroll, 10)
+      } else {
+        container.scrollTo(0, target);
+        setTimeout(() => {
+          if (container.scrollTop !== target) {
+            setTimeout(scroll, 10)
+          }
+        }, 10);
+      }
+    }
+    scroll();
   }
 
   reset() {
@@ -216,6 +234,7 @@ export class DeviceListComponent implements OnInit {
   }
 
   scrolled($event: any) {
+    this.state.listScrollOffset = $event.target.scrollTop;
     this.scrollPercentage = ($event.target.scrollTop / $event.target.offsetHeight) * 100;
   }
 

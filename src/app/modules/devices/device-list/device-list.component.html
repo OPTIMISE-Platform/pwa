@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 
-<div class="container" (scroll)="scrolled($event)" fxLayout="column">
+<div class="container" id="container" (scroll)="scrolled($event)" fxLayout="column">
     <mat-form-field appearance="standard" class="search" [fxShow]="searchOpen">
       <input matInput placeholder="Search" #searchInput [formControl]="searchFormControl">
       <mat-icon matSuffix (click)="cancelSearch()" class="cancel-search">clear</mat-icon>
