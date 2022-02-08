@@ -40,13 +40,26 @@ export class ToolbarComponent implements OnInit {
     private errorHandlerService: ErrorHandlerService,
     private updates: SwUpdate,
   ) {
-    this.updates.versionUpdates.subscribe(() => {
-      this.hasUpdate = true;
+    this.updates.versionUpdates.subscribe(event => {
+      switch (event.type) {
+        case "VERSION_DETECTED":
+          console.log("Detected new version " + event.version.hash);
+          break;
+        case "VERSION_INSTALLATION_FAILED":
+          console.error("Installation failed", event.error);
+          break;
+        case "VERSION_READY":
+          console.log("New Version ready! Current: " + event.currentVersion + ", Latest: " + event.latestVersion);
+          this.hasUpdate = true;
+          break;
+      }
     });
   }
 
   ngOnInit(): void {
-    this.updates.checkForUpdate().then(hasUpdate => this.hasUpdate = hasUpdate, () => {});
+    if (this.updates.isEnabled) {
+      this.updates.checkForUpdate().then(hasUpdate => this.hasUpdate = hasUpdate);
+    }
     this.authorizationService.getUserName().then(u => this.userName = u);
     this.toolBarService.loading.subscribe(loading => this.loading = loading);
   }
@@ -66,12 +79,12 @@ export class ToolbarComponent implements OnInit {
 
   update() {
     this.updates.activateUpdate().then(() => {
-      debugger;
-      this.hasUpdate = false;
-      window.location.reload();
-    }, (reason) => {
-      this.errorHandlerService.handleError<void>(ToolbarComponent.name, 'update', undefined, true)(reason).subscribe();
-    }
+        debugger;
+        this.hasUpdate = false;
+        window.location.reload();
+      }, (reason) => {
+        this.errorHandlerService.handleError<void>(ToolbarComponent.name, 'update', undefined, true)(reason).subscribe();
+      }
     );
   }
 }
