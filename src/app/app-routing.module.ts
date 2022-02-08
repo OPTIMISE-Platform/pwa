@@ -18,7 +18,7 @@ import {NgModule} from '@angular/core';
 import {RouterModule} from '@angular/router';
 
 const routes =[
-  {path: '', redirectTo: 'devices/list', pathMatch: 'full'},
+  {path: '', redirectTo: 'devices', pathMatch: 'full'},
 ];
 
 
