@@ -19,6 +19,8 @@ import {AuthorizationService} from "../../services/authorization.service";
 import {ToolbarService} from "./toolbar.service";
 import {ConfirmationDialogService} from "../confirmation-dialog/confirmation-dialog.service";
 import {CacheService} from "../../cache.service";
+import {SwUpdate} from "@angular/service-worker";
+import {ErrorHandlerService} from "../../services/error-handler.service";
 
 @Component({
   selector: 'app-toolbar',
@@ -28,15 +30,23 @@ import {CacheService} from "../../cache.service";
 export class ToolbarComponent implements OnInit {
   userName = '';
   loading = false;
+  hasUpdate = false;
 
   constructor(
     private authorizationService: AuthorizationService,
     private toolBarService: ToolbarService,
     private confirmationDialogService: ConfirmationDialogService,
     private cacheService: CacheService,
-  ) { }
+    private errorHandlerService: ErrorHandlerService,
+    private updates: SwUpdate,
+  ) {
+    this.updates.versionUpdates.subscribe(() => {
+      this.hasUpdate = true;
+    });
+  }
 
   ngOnInit(): void {
+    this.updates.checkForUpdate().then(hasUpdate => this.hasUpdate = hasUpdate, () => {});
     this.authorizationService.getUserName().then(u => this.userName = u);
     this.toolBarService.loading.subscribe(loading => this.loading = loading);
   }
@@ -52,5 +62,16 @@ export class ToolbarComponent implements OnInit {
         window.location.reload();
       }
     })
+  }
+
+  update() {
+    this.updates.activateUpdate().then(() => {
+      debugger;
+      this.hasUpdate = false;
+      window.location.reload();
+    }, (reason) => {
+      this.errorHandlerService.handleError<void>(ToolbarComponent.name, 'update', undefined, true)(reason).subscribe();
+    }
+    );
   }
 }

@@ -24,7 +24,7 @@
   </a>
   <span class="fill-remaining-space"></span>
   <button mat-icon-button [matMenuTriggerFor]="user" color="accent">
-    <mat-icon>account_circle</mat-icon>
+    <mat-icon [matBadge]="hasUpdate ? 'star_border' : ''" matBadgeColor="warn">account_circle</mat-icon>
   </button>
   <mat-menu #user="matMenu" [overlapTrigger]="false">
     <button disabled mat-menu-item>
@@ -35,6 +35,11 @@
     <button mat-menu-item (click)="clearCache()">
       <mat-icon>bug_report</mat-icon>
       Clear Cache
+    </button>
+    <mat-divider *ngIf="hasUpdate"></mat-divider>
+    <button *ngIf="hasUpdate" mat-menu-item (click)="update()">
+      <mat-icon color="warn">browser_updated</mat-icon>
+      Update
     </button>
     <mat-divider></mat-divider>
     <button mat-menu-item (click)="logout()">

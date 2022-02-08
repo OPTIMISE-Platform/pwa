@@ -28,6 +28,7 @@ import {MatSnackBarModule} from "@angular/material/snack-bar";
 import {MatProgressBarModule} from "@angular/material/progress-bar";
 import {ConfirmationDialogComponent} from "./components/confirmation-dialog/confirmation-dialog.component";
 import {MatDialogModule} from "@angular/material/dialog";
+import {MatBadgeModule} from "@angular/material/badge";
 
 @NgModule({
   declarations: [
@@ -37,18 +38,19 @@ import {MatDialogModule} from "@angular/material/dialog";
   exports: [
     ToolbarComponent
   ],
-  imports: [
-    CommonModule,
-    MatToolbarModule,
-    MatIconModule,
-    MatMenuModule,
-    MatDividerModule,
-    MatButtonModule,
-    FlexLayoutModule,
-    RouterModule,
-    MatSnackBarModule,
-    MatProgressBarModule,
-    MatDialogModule,
-  ]
+    imports: [
+        CommonModule,
+        MatToolbarModule,
+        MatIconModule,
+        MatMenuModule,
+        MatDividerModule,
+        MatButtonModule,
+        FlexLayoutModule,
+        RouterModule,
+        MatSnackBarModule,
+        MatProgressBarModule,
+        MatDialogModule,
+        MatBadgeModule,
+    ]
 })
 export class CoreModule { }

@@ -49,3 +49,7 @@
   position: fixed;
   left: 0;
 }
+
+::ng-deep .material-icons .mat-badge-content {
+  font-family: 'Material Icons';
+}
