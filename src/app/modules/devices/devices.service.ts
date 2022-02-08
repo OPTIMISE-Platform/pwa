@@ -80,7 +80,7 @@ export class DevicesService {
     );
   }
 
-  getDeviceInstance(id: string): Observable<DeviceInstancesPermSearchModel> {
+  getDeviceInstance(id: string): Observable<DeviceInstancesPermSearchModel | undefined> {
     return this.http.get<DeviceInstancesPermSearchModel[] | null>(
       environment.apiUrl + "/permissions/query/v3/resources/devices?ids=" + id,
     ).pipe(
@@ -100,7 +100,7 @@ export class DevicesService {
         return resp;
       }),
       catchError(this.errorHandlerService.handleError(DevicesService.name, 'getDeviceInstances',
-        this.cacheService.fromCache(this.cachePrefixDevices + id) || {} as DeviceInstancesPermSearchModel, true)),
+        this.cacheService.fromCache(this.cachePrefixDevices + id) || undefined, true)),
     );
   }
 
