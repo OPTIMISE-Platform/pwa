@@ -26,7 +26,6 @@ import {DeviceTypeCharacteristicsModel, DeviceTypeExtendedFunctionModel, Type} f
 })
 export class CommandConfigComponent {
   functionConfig: DeviceTypeExtendedFunctionModel;
-  value: any | undefined;
 
   form: FormGroup;
   formIsGroup = false;
@@ -42,32 +41,31 @@ export class CommandConfigComponent {
     @Inject(MAT_DIALOG_DATA) data: { function: DeviceTypeExtendedFunctionModel; value: any },
   ) {
     this.functionConfig = data.function;
-    this.value = data.value;
     this.form = this.fb.group({});
     if (this.functionConfig.concept.base_characteristic.sub_characteristics !== null
       && this.functionConfig.concept.base_characteristic.sub_characteristics !== undefined
       && this.functionConfig.concept.base_characteristic.sub_characteristics.length > 0) {
       this.functionConfig.concept.base_characteristic.sub_characteristics?.forEach(sub => {
-        this.form.addControl(sub.name, this.walkTree(sub.name, sub));
+        this.form.addControl(sub.name, this.walkTree(sub.name, sub, data.value !== undefined ? data.value[sub.name] : undefined));
       });
       this.formIsGroup = true;
     } else {
-      this.form.addControl('', this.walkTree('', this.functionConfig.concept.base_characteristic));
+      this.form.addControl('', this.walkTree('', this.functionConfig.concept.base_characteristic, data.value));
     }
   }
 
-  private walkTree(path: string, characteristic: DeviceTypeCharacteristicsModel): AbstractControl {
+  private walkTree(path: string, characteristic: DeviceTypeCharacteristicsModel, value: any): AbstractControl {
     switch (characteristic.type) {
       case Type.INTEGER:
       case Type.FLOAT:
         this.fields.push({characteristic: characteristic, path: path});
-        return this.fb.control(characteristic.name, this.fb.control(characteristic.value || 0));
+        return this.fb.control(value || characteristic.value || 0);
       case Type.STRING:
         this.fields.push({characteristic: characteristic, path: path});
-        return this.fb.control(characteristic.name, this.fb.control(characteristic.value || ''));
+        return this.fb.control(value || characteristic.value || '');
       case Type.BOOLEAN:
         this.fields.push({characteristic: characteristic, path: path});
-        return this.fb.control(characteristic.name, this.fb.control(characteristic.value || false));
+        return this.fb.control(value || characteristic.value || false);
       case Type.STRUCTURE:
         const group = this.fb.group({});
         characteristic.sub_characteristics?.forEach(sub => {
@@ -75,7 +73,7 @@ export class CommandConfigComponent {
           if (path.length > 0) {
             subPath = path + '.' + subPath;
           }
-          group.addControl(characteristic.name, this.walkTree(subPath, sub));
+          group.addControl(characteristic.name, this.walkTree(subPath, sub, value !== undefined ? value[characteristic.name] : undefined));
         });
         return group;
       default:

@@ -57,7 +57,7 @@ export const functionConfigs = {
   },
   [environment.functions.getColor]: {
     displayName: 'Color',
-    transform(value?: any): string {
+    transformDisplay(value?: any): string {
       if (value === undefined) {
         return 'unknown';
       }
@@ -66,7 +66,7 @@ export const functionConfigs = {
   },
   [environment.functions.getTimestampFunction]: {
     displayName: 'Timestamp',
-    transform(value?: any): string {
+    transformDisplay(value?: any): string {
       if (value === undefined) {
         return 'unknown';
       }

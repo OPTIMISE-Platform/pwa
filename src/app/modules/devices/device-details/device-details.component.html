@@ -64,11 +64,12 @@
             {{getDisplayName(functionStates.key)}}
           </span>
 
-
           <mat-icon *ngIf="hasIcon(functionStates.key)"
                     [class]="getIcon(functionStates.key, value).class"
                     (click)="snack(value !== undefined ? value.toString() + (getDisplayUnit(functionStates.key)) : 'unknown')">{{getIcon(functionStates.key, value).icon}}</mat-icon>
-            <span *ngIf="!hasIcon(functionStates.key)">{{value}} {{getDisplayUnit(functionStates.key)}}</span>
+            <span *ngIf="!hasIcon(functionStates.key)">
+              {{getDisplayValue(functionStates.key, value)}} {{getDisplayUnit(functionStates.key)}}
+            </span>
 
         </mat-list-item>
         </span>

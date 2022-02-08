@@ -229,14 +229,21 @@ export class DeviceDetailsComponent implements OnInit {
         function_id: functionId,
         device_id: this.state.device.id,
         service_id: service.id,
-      }]).subscribe(); // TODO reload measuring function
+      }]).subscribe(() => this.reloadStatesWithConcept(f?.concept.id));
     } else {
+      const values: any[] = [];
+      this.state.device.functionStates.forEach((state, measuringFunctionId) => {
+        if (this.metadataService.getFunction(measuringFunctionId)?.concept.id === f.concept.id) {
+          values.push(...state);
+        }
+      });
+
       const dialogConfig = new MatDialogConfig();
       dialogConfig.width = '80%';
       dialogConfig.disableClose = false;
       dialogConfig.data = {
         function: f,
-        //value: 62 // TODO
+        value: values.length === 1 ? values[0]: undefined,
       };
       const editDialogRef = this.dialog.open(CommandConfigComponent, dialogConfig);
 
@@ -252,8 +259,42 @@ export class DeviceDetailsComponent implements OnInit {
           device_id: this.state.device.id,
           service_id: service.id,
           input: result
-        }]).subscribe(); // TODO reload measuring function
+        }]).subscribe(() => this.reloadStatesWithConcept(f.concept.id));
       });
     }
+  }
+
+  getDisplayValue(functionId: string, value: any) {
+    const config = functionConfigs[functionId];
+    if (config?.transformDisplay === undefined) {
+      return value;
+    }
+    return config.transformDisplay(value);
+  }
+
+  reloadStatesWithConcept(conceptId?: string) {
+    if (conceptId === undefined) {
+      return;
+    }
+    const matchingMeasuringFunctionIds: string[] = [];
+    const commands: {
+      function_id: string;
+      device_id: string;
+      service_id: string;
+    }[] = [];
+    this.state.device?.functionServices.forEach((services, functionId) => {
+      if (functionId.startsWith(environment.measuringFunctionPrefix) && this.metadataService.getFunction(functionId)?.concept.id === conceptId) {
+        matchingMeasuringFunctionIds.push(functionId);
+        services.forEach(service => {
+          commands.push({function_id: functionId, device_id: this.state.device?.id || '', service_id: service.id});
+        });
+      }
+    });
+    this.devicesCommandService.runCommands(commands).subscribe(results => {
+      matchingMeasuringFunctionIds.forEach(functionId => this.state.device?.functionStates.set(functionId, []));
+      results.forEach((result, i) => {
+        this.state.device?.functionStates.get(commands[i].function_id)?.push(result);
+      });
+    });
   }
 }
