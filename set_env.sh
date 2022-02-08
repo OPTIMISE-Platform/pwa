@@ -15,8 +15,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+export file=$(find '/usr/share/nginx/html' -name 'main*.js')
+sed -i -e 's,KEYCLOAK_URL,'"$KEYCLOAK_URL"',g' ${file}
+sed -i -e 's,KEYCLOAK_REALM,'"$KEYCLOAK_REALM"',g' ${file}
+sed -i -e 's,KEYCLOAK_CLIENT_ID,'"$KEYCLOAK_CLIENT_ID"',g' ${file}
+sed -i -e 's,API_URL,'"$API_URL"',g' ${file}
 
-find '/usr/share/nginx/html' -name '*.js' -exec sed -i -e 's,KEYCLOAK_URL,'"$KEYCLOAK_URL"',g' {} \;
-find '/usr/share/nginx/html' -name '*.js' -exec sed -i -e 's,KEYCLOAK_REALM,'"$KEYCLOAK_REALM"',g' {} \;
-find '/usr/share/nginx/html' -name '*.js' -exec sed -i -e 's,KEYCLOAK_CLIENT_ID,'"$KEYCLOAK_CLIENT_ID"',g' {} \;
-find '/usr/share/nginx/html' -name '*.js' -exec sed -i -e 's,API_URL,'"$API_URL"',g' {} \;
+# update checksum
+export fileSuffix=$(echo ${file} | sed -e "s/\/usr\/share\/nginx\/html//")
+export sum=$(sha1sum ${file} | head -c 40)
+sed  -i -e 's/"\'${fileSuffix}'".*/"\'${fileSuffix}'": "'${sum}'",/' /usr/share/nginx/html/ngsw.json
