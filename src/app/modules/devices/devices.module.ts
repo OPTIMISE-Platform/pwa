@@ -32,6 +32,9 @@ import {ReactiveFormsModule} from "@angular/forms";
 import {DeviceDetailsComponent} from "./device-details/device-details.component";
 import {MatCardModule} from "@angular/material/card";
 import {MatProgressBarModule} from "@angular/material/progress-bar";
+import { CommandConfigComponent } from './command-config/command-config.component';
+import {MatDialogModule} from "@angular/material/dialog";
+import {MatSliderModule} from "@angular/material/slider";
 
 
 const devices = {path: 'devices', pathMatch: 'full', component: DeviceListComponent, data: {animation: 'devices'}};
@@ -41,6 +44,7 @@ const deviceDetails = {path: 'devices/:id', pathMatch: 'full', component: Device
   declarations: [
     DeviceListComponent,
     DeviceDetailsComponent,
+    CommandConfigComponent,
   ],
   imports: [
     RouterModule.forChild([devices, deviceDetails]),
@@ -59,6 +63,8 @@ const deviceDetails = {path: 'devices/:id', pathMatch: 'full', component: Device
     ReactiveFormsModule,
     MatCardModule,
     MatProgressBarModule,
+    MatDialogModule,
+    MatSliderModule,
   ],
 })
 export class DevicesModule {

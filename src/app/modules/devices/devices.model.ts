@@ -18,10 +18,6 @@ export interface CustomDeviceInstance extends DeviceInstancesPermSearchModel {
   // Measuring
   functionServices: Map<string, DeviceTypeServiceModel[]>;
   functionStates: Map<string, any[]>;
-
-  // Controlling
-  setOnServices: DeviceTypeServiceModel[];
-  setOffServices: DeviceTypeServiceModel[];
 }
 
 export interface DeviceTypeBaseModel {
@@ -174,4 +170,14 @@ export interface DeviceTypeFunctionType {
 
 export interface DeviceTypeExtendedFunctionModel extends DeviceTypeFunctionModel {
   concept: DeviceTypeExtendedConceptModel;
+}
+
+export enum Type {
+  NONE = '',
+  STRING = 'https://schema.org/Text',
+  INTEGER = 'https://schema.org/Integer',
+  FLOAT = 'https://schema.org/Float',
+  BOOLEAN = 'https://schema.org/Boolean',
+  STRUCTURE = 'https://schema.org/StructuredValue',
+  LIST = 'https://schema.org/ItemList',
 }

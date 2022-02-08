@@ -216,10 +216,20 @@ export class DeviceListComponent implements OnInit, AfterViewInit {
     let serviceId;
     if ((device.functionStates.get(environment.functions.getOnOff) || [])[0] === true) {
       functionId = environment.functions.setOff;
-      serviceId = device.setOffServices[0]?.id;
+      const services = device.functionServices.get(environment.functions.setOff);
+      if (services?.length !== 1) {
+        console.warn("Can't turn device off: incorrect number of services", services);
+        return;
+      }
+      serviceId = services[0].id;
     } else {
       functionId = environment.functions.setOn;
-      serviceId = device.setOnServices[0]?.id;
+      const services = device.functionServices.get(environment.functions.setOn);
+      if (services?.length !== 1) {
+        console.warn("Can't turn device on: incorrect number of services", services);
+        return;
+      }
+      serviceId = services[0].id;
     }
     if (serviceId === undefined) {
       console.warn("Device is missing setOn or setOff service!");

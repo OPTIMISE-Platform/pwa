@@ -130,8 +130,6 @@ export class DevicesService {
     customDevice.functionServices = new Map();
     customDevice.functionStates = new Map();
 
-    customDevice.setOnServices = [];
-    customDevice.setOffServices = [];
     return customDevice;
   }
 

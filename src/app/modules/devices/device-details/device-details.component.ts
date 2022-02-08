@@ -15,7 +15,12 @@
  */
 
 import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
-import {DeviceTypeDeviceClassModel, DeviceTypeModel, DeviceTypePermSearchModel} from "../devices.model";
+import {
+  DeviceTypeDeviceClassModel,
+  DeviceTypeModel,
+  DeviceTypePermSearchModel,
+  DeviceTypeServiceModel
+} from "../devices.model";
 import {DevicesService} from "../devices.service";
 import {DevicesCommandService} from "../device-command.service";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -23,8 +28,11 @@ import {map, mergeAll, Observable, of} from "rxjs";
 import {getEmptyState, SharedStateModel} from "../state.model";
 import {SnackbarService} from "../../../core/services/snackbar.service";
 import {ToolbarService} from "../../../core/components/toolbar/toolbar.service";
-import {measuringFunctions} from "../../../core/function-configs";
+import {functionConfigs} from "../../../core/function-configs";
+import {MatDialog, MatDialogConfig} from "@angular/material/dialog";
+import {CommandConfigComponent} from "../command-config/command-config.component";
 import {MetadataService} from "../metadata.service";
+import {environment} from "../../../../environments/environment";
 
 
 @Component({
@@ -52,6 +60,7 @@ export class DeviceDetailsComponent implements OnInit {
     private toolBarService: ToolbarService,
     private router: Router,
     private route: ActivatedRoute,
+    private dialog: MatDialog,
   ) {
     this.state = (this.router.getCurrentNavigation()?.extras?.state || [])['state'];
   }
@@ -164,15 +173,15 @@ export class DeviceDetailsComponent implements OnInit {
     if (battery >= 95) {
       return 'battery_full';
     }
-    return 'battery_' + Math.floor(battery * 7 /100) + '_bar';
+    return 'battery_' + Math.floor(battery * 7 / 100) + '_bar';
   }
 
   snack(message: string) {
     this.snackBarService.snack(message);
   }
 
-  getServiceConfigs() {
-    return measuringFunctions;
+  getMeasuringFunctionConfigs() {
+    return functionConfigs;
   }
 
   getDisplayName(functionId: string) {
@@ -185,14 +194,66 @@ export class DeviceDetailsComponent implements OnInit {
   }
 
   hasIcon(functionId: string) {
-    return measuringFunctions[functionId]?.getIcon !== undefined;
+    return functionConfigs[functionId]?.getIcon !== undefined;
   }
 
   getIcon(functionId: string, value: any): {icon: string, class: string} {
-    const f = measuringFunctions[functionId];
+    const f = functionConfigs[functionId];
     if (f === undefined || f.getIcon === undefined) {
       return {icon: '', class: ''};
     }
     return f.getIcon(value);
+  }
+
+  getControllingFunctions(): Map<string, DeviceTypeServiceModel[]> {
+    const m: Map<string, DeviceTypeServiceModel[]> = new Map();
+    this.state.device?.functionServices.forEach((v, k) => {
+      if (k.startsWith(environment.controllingFunctionPrefix)) {
+        m.set(k, v);
+      }
+    });
+    return m;
+  }
+
+  hasInput(controllingFunctioned: string) {
+    return this.metadataService.getFunction(controllingFunctioned)?.concept.base_characteristic.type !== "";
+  }
+
+  runTask(functionId: string, service: DeviceTypeServiceModel) {
+    if (this.state.device === undefined) {
+      return;
+    }
+    const f = this.metadataService.getFunction(functionId);
+    if (f?.concept.base_characteristic.type === undefined || f.concept.base_characteristic.type === '') {
+      this.devicesCommandService.runCommands([{
+        function_id: functionId,
+        device_id: this.state.device.id,
+        service_id: service.id,
+      }]).subscribe(); // TODO reload measuring function
+    } else {
+      const dialogConfig = new MatDialogConfig();
+      dialogConfig.width = '80%';
+      dialogConfig.disableClose = false;
+      dialogConfig.data = {
+        function: f,
+        //value: 62 // TODO
+      };
+      const editDialogRef = this.dialog.open(CommandConfigComponent, dialogConfig);
+
+      editDialogRef.afterClosed().subscribe((result: any) => {
+        if (result === undefined) {
+          return;
+        }
+        if (this.state.device === undefined) {
+          return;
+        }
+        this.devicesCommandService.runCommands([{
+          function_id: functionId,
+          device_id: this.state.device.id,
+          service_id: service.id,
+          input: result
+        }]).subscribe(); // TODO reload measuring function
+      });
+    }
   }
 }

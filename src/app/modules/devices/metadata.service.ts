@@ -65,9 +65,6 @@ export class MetadataService implements OnDestroy {
                   device.functionServices.set(functionConfig.id, services);
                 }
               });
-
-              device.setOffServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.setOff));
-              device.setOnServices = deviceType.services.filter(service => service.function_ids.some(functionId => functionId === environment.functions.setOn));
               return device;
             })));
           });

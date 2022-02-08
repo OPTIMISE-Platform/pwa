@@ -49,6 +49,7 @@ export class ToolbarComponent implements OnInit {
     this.confirmationDialogService.openConfirmationDialog("Clear Cache", "Do you want to clear the cache?").subscribe(resp => {
       if (resp) {
         this.cacheService.clearCache();
+        window.location.reload();
       }
     })
   }

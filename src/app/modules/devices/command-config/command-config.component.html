@@ -1,0 +1,62 @@
+<!--
+  ~ Copyright 2022 InfAI (CC SES)
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<h2 mat-dialog-title>{{functionConfig.display_name || functionConfig.name}}</h2>
+
+<mat-dialog-content [formGroup]="form">
+  <div *ngFor="let field of fields">
+    <div
+      *ngIf="field.characteristic.type === type.INTEGER || field.characteristic.type === type.FLOAT">
+      <div
+        *ngIf="field.characteristic.min_value !== undefined && field.characteristic.max_value !== undefined">
+        <mat-slider fxFlex thumbLabel [min]="field.characteristic.min_value"
+                    [max]="field.characteristic.max_value"
+                    step="{{field.characteristic.type === type.INTEGER ? 1 : 0.1}}}"
+                    [formControlName]="field.path"></mat-slider>
+      </div>
+      <div
+        *ngIf="field.characteristic.min_value === undefined || field.characteristic.max_value === undefined">
+        <mat-form-field appearance="outline" class="full-width" color="accent">
+          <mat-label>{{field.characteristic.name}}</mat-label>
+          <input matInput [formControlName]="field.path" type="number">
+          <span matSuffix>{{field.characteristic.display_unit}}</span>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div *ngIf="field.characteristic.type === type.STRING">
+      <mat-form-field appearance="outline" class="full-width" color="accent">
+        <mat-label>{{field.characteristic.name}}</mat-label>
+        <input matInput [formControlName]="field.path" type="text">
+        <span matSuffix>{{field.characteristic.display_unit}}</span>
+      </mat-form-field>
+    </div>
+
+    <div *ngIf="field.characteristic.type === type.BOOLEAN">
+      <mat-slide-toggle [formControlName]="field.path" color="accent">{{field.characteristic.name}}</mat-slide-toggle>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions>
+  <button mat-icon-button color="warn" (click)="close()">
+    <mat-icon>close</mat-icon>
+  </button>
+  <span fxFlex></span>
+  <button mat-icon-button color="accent" (click)="save()">
+    <mat-icon>check</mat-icon>
+  </button>
+</mat-dialog-actions>

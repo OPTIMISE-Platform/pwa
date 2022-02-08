@@ -63,3 +63,8 @@
 .mat-card:not([class*=mat-elevation-z]) {
   box-shadow: none;
 }
+
+.right-icon {
+  position: relative;
+  left: 0.5em;
+}

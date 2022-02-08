@@ -17,10 +17,13 @@
 import {environment} from "../../environments/environment";
 
 
-export const measuringFunctions = {
+export const functionConfigs = {
   [environment.functions.getOnOff]: {
     displayName: 'On/Off',
     getIcon(value?: boolean): { icon: string; class: string } {
+      if (value === undefined) {
+        return {class: '', icon: 'offline_bolt'};
+      }
       if (value) {
         return {class: 'green', icon: 'offline_bolt'};
       }
@@ -43,10 +46,13 @@ export const measuringFunctions = {
   [environment.functions.getAlarm]: {
     displayName: 'Alarm',
     getIcon(value?: boolean): { icon: string; class: string } {
-      if (value) {
-        return {class: 'green', icon: 'notifications_none'};
+      if (value === undefined) {
+        return {icon: 'question_mark', class: 'red'};
       }
-      return {class: 'red', icon: 'notification_important'};
+      if (value) {
+        return {class: 'red', icon: 'notification_important'};
+      }
+      return {class: 'green', icon: 'notifications_none'};
     }
   },
   [environment.functions.getColor]: {
@@ -75,4 +81,45 @@ export const measuringFunctions = {
       );
     }
   },
-};
+  [environment.functions.setOn]:
+    {
+      getIcon(_?: any): { icon: string; class: string } {
+        return {
+          icon: 'power_settings_new',
+          class: 'mat-accent',
+        }
+      }
+    },
+  [environment.functions.setOff]: {
+    getIcon(_?: any): { icon: string; class: string } {
+      return {
+        icon: 'power_settings_new',
+        class: 'mat-accent',
+      }
+    },
+  },
+  [environment.functions.setBrightness]: {
+    getIcon(_?: any): { icon: string; class: string } {
+      return {
+        icon: 'brightness_medium',
+        class: 'mat-accent',
+      }
+    },
+  },
+  [environment.functions.setColor]: {
+    getIcon(_?: any): { icon: string; class: string } {
+      return {
+        icon: 'palette',
+        class: 'mat-accent',
+      }
+    },
+  },
+  [environment.functions.setTemperature]: {
+    getIcon(_?: any): { icon: string; class: string } {
+      return {
+        icon: 'thermostat',
+        class: 'mat-accent',
+      }
+    },
+  },
+}

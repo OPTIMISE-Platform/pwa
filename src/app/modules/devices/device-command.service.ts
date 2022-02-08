@@ -21,8 +21,8 @@ import {HttpClient} from "@angular/common/http";
 import {ErrorHandlerService} from "../../core/services/error-handler.service";
 import {DevicesService} from "./devices.service";
 import {CustomDeviceInstance} from "./devices.model";
-import {measuringFunctions} from "../../core/function-configs";
 import {MetadataService} from "./metadata.service";
+import {functionConfigs} from "../../core/function-configs";
 
 @Injectable({
   providedIn: 'root'
@@ -57,7 +57,7 @@ export class DevicesCommandService {
             commands.push({function_id: functionId, device_id: device.id, service_id: service.id});
             commandFunctionMapper.push(functionId);
             commandDeviceMapper.push(i);
-            commandTransformMapper.push(measuringFunctions[functionId]?.transform);
+            commandTransformMapper.push(functionConfigs[functionId]?.transform);
           });
         }
       });
