@@ -14,7 +14,7 @@ RUN node --max_old_space_size=8192 $(npm bin)/ng build --configuration productio
 
 ## STAGE 2: Run nginx to serve application ##
 FROM nginx
-RUN apt-get update && apt-get install -y curl
+RUN apt-get update && apt-get install -y curl jq
 COPY --from=builder /tmp/workspace/dist/pwa/ /usr/share/nginx/html/
 COPY --from=builder /tmp/workspace/set_env.sh .
 ADD nginx-custom.conf /etc/nginx/conf.d/default.conf

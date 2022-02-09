@@ -24,4 +24,5 @@ sed -i -e 's,API_URL,'"$API_URL"',g' ${file}
 # update checksum
 export fileSuffix=$(echo ${file} | sed -e "s/\/usr\/share\/nginx\/html//")
 export sum=$(sha1sum ${file} | head -c 40)
-sed  -i -e 's/"\'${fileSuffix}'".*/"\'${fileSuffix}'": "'${sum}'",/' /usr/share/nginx/html/ngsw.json
+jq '.hashTable."'${fileSuffix}'" |= "'${sum}'"' /usr/share/nginx/html/ngsw.json > /tmp/ngsw.json
+mv /tmp/ngsw.json /usr/share/nginx/html/ngsw.json
