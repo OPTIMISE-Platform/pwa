@@ -22,12 +22,21 @@ export const functionConfigs = {
     displayName: 'On/Off',
     getIcon(value?: boolean): { icon: string; class: string } {
       if (value === undefined) {
-        return {class: '', icon: 'offline_bolt'};
+        return {class: 'disconnected', icon: 'offline_bolt'};
       }
       if (value) {
         return {class: 'green', icon: 'offline_bolt'};
       }
       return {class: 'red', icon: 'offline_bolt'};
+    },
+    getRelatedControllingFunction(value: any): string|undefined {
+      if (value === undefined) {
+        return undefined;
+      }
+      if (value) {
+        return environment.functions.setOff;
+      }
+      return environment.functions.setOn;
     }
   },
   [environment.functions.getBattery]: {
@@ -88,7 +97,8 @@ export const functionConfigs = {
           icon: 'power_settings_new',
           class: 'mat-accent',
         }
-      }
+      },
+      relatedMeasuringFunctionId: environment.functions.getOnOff,
     },
   [environment.functions.setOff]: {
     getIcon(_?: any): { icon: string; class: string } {
@@ -97,6 +107,7 @@ export const functionConfigs = {
         class: 'mat-accent',
       }
     },
+    relatedMeasuringFunctionId: environment.functions.getOnOff,
   },
   [environment.functions.setBrightness]: {
     getIcon(_?: any): { icon: string; class: string } {

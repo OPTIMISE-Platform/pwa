@@ -86,6 +86,7 @@ export interface DeviceTypeModel extends DeviceTypeBaseModel {
 export interface DeviceTypeServiceModel {
   id: string;
   local_id: string;
+  service_group_key?: string;
   name: string;
   description: string;
   aspect_ids: string[];

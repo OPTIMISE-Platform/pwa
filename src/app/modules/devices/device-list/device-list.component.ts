@@ -17,7 +17,7 @@
 import {AfterViewInit, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {CustomDeviceInstance} from "../devices.model";
 import {DevicesService} from "../devices.service";
-import {debounceTime, forkJoin, map, Observable} from "rxjs";
+import {debounceTime, forkJoin, map, mergeAll, Observable} from "rxjs";
 import {MatPaginator, PageEvent} from "@angular/material/paginator";
 import {DevicesCommandService} from "../device-command.service";
 import {Router} from "@angular/router";
@@ -26,6 +26,7 @@ import {getEmptyState, SharedStateModel} from "../state.model";
 import {ToolbarService} from "../../../core/components/toolbar/toolbar.service";
 import {environment} from "../../../../environments/environment";
 import {MetadataService} from "../metadata.service";
+import {functionConfigs} from "../../../core/function-configs";
 
 
 @Component({
@@ -48,6 +49,7 @@ export class DeviceListComponent implements OnInit, AfterViewInit {
 
   @ViewChild('searchInput', {static: true}) searchInput!: ElementRef;
   @ViewChild('paginator', {static: true}) paginator!: MatPaginator;
+
   constructor(
     private devicesService: DevicesService,
     private devicesCommandService: DevicesCommandService,
@@ -85,7 +87,7 @@ export class DeviceListComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     const target = this.state.listScrollOffset;
-    const scroll = ()=> {
+    const scroll = () => {
       const container = document.getElementById('container');
       if (container === null) {
         setTimeout(scroll, 10)
@@ -148,7 +150,7 @@ export class DeviceListComponent implements OnInit, AfterViewInit {
     }
     this.toolbarService.setLoading(true);
     const deviceTypeIds = this.state.classIdToTypeMap.get(this.state.deviceClassIdArr[this.state.deviceClassIdArrIndex])?.map(x => x.id);
-    this.devicesService.getDeviceInstances(this.searchFormControl.value,  limit, this.state.classOffset, 'device_type_id', deviceTypeIds || []).subscribe(devices => {
+    this.devicesService.getDeviceInstances(this.searchFormControl.value, limit, this.state.classOffset, 'device_type_id', deviceTypeIds || []).subscribe(devices => {
       if (devices.length > 0) {
         this.state.classOffset += devices.length;
         const customDevices = devices.map(x => this.devicesService.permInstanceToCustom(x));
@@ -170,7 +172,7 @@ export class DeviceListComponent implements OnInit, AfterViewInit {
 
   needsClassHeader(i: number): boolean {
     i += this.lowerOffset;
-    return i === this.lowerOffset || this.state.typeIdToTypeMap.get(this.state.devices[i].device_type_id)?.device_class_id !== this.state.typeIdToTypeMap.get(this.state.devices[i-1].device_type_id)?.device_class_id;
+    return i === this.lowerOffset || this.state.typeIdToTypeMap.get(this.state.devices[i].device_type_id)?.device_class_id !== this.state.typeIdToTypeMap.get(this.state.devices[i - 1].device_type_id)?.device_class_id;
   }
 
   getClassHeader(i: number) {
@@ -180,7 +182,7 @@ export class DeviceListComponent implements OnInit, AfterViewInit {
 
   needsTypeHeader(i: number): boolean {
     i += this.lowerOffset;
-    return i === this.lowerOffset || this.state.devices[i].device_type_id !== this.state.devices[i-1].device_type_id;
+    return i === this.lowerOffset || this.state.devices[i].device_type_id !== this.state.devices[i - 1].device_type_id;
   }
 
   getTypeHeader(i: number) {
@@ -235,7 +237,11 @@ export class DeviceListComponent implements OnInit, AfterViewInit {
       console.warn("Device is missing setOn or setOff service!");
       return;
     }
-    this.devicesCommandService.runCommands([{function_id: functionId, device_id: device.id, service_id: serviceId}]).subscribe(result => {
+    this.devicesCommandService.runCommands([{
+      function_id: functionId,
+      device_id: device.id,
+      service_id: serviceId
+    }]).subscribe(result => {
       const currentIndex = this.state.devices.findIndex(x => x.id === device.id); // pagination might have changed this
       if (currentIndex !== -1) {
         (this.state.devices[currentIndex].functionStates.get(environment.functions.getOnOff) || [{}])[0] = result[0];
@@ -264,11 +270,90 @@ export class DeviceListComponent implements OnInit, AfterViewInit {
     this.router.navigate(['devices/' + device.id], {state: {'state': this.state}});
   }
 
-  getOnOffServices(device: CustomDeviceInstance) {
-    return device.functionServices.get(environment.functions.getOnOff);
+  getOnOffToggles(device: CustomDeviceInstance): { state?: boolean, controllingServiceId: string, measuringServiceId: string, controllingFunctionId: string, measuringFunctionId: string, stateIndex: number }[] {
+    const res: { state?: boolean, controllingServiceId: string, measuringServiceId: string, controllingFunctionId: string, stateIndex: number }[] = [];
+    const states = device.functionStates.get(environment.functions.getOnOff);
+    if (states === undefined) {
+      return res.map(r => ({measuringFunctionId: environment.functions.getOnOff, ...r}));
+    }
+    const f = functionConfigs[environment.functions.getOnOff]?.getRelatedControllingFunction;
+    device.functionServices.get(environment.functions.getOnOff)?.forEach((measuringService, i) => {
+      if (states.length <= i) {
+        return;
+      }
+
+      let controllingFunctionId: string | undefined;
+      if (f !== undefined) {
+        controllingFunctionId = f(states[i]);
+      }
+      const controllingServices: { serviceId: string, functionId: string }[] = [];
+      if (controllingFunctionId !== undefined) {
+        // mapping via config
+        controllingServices.push(...(device.functionServices.get(controllingFunctionId) || [])
+          .filter(s => s.service_group_key === measuringService.service_group_key).map(s => ({
+            functionId: controllingFunctionId || '',
+            serviceId: s.id
+          })));
+      } else {
+        // mapping via conceptId
+        const conceptId = this.metadataService.getFunction(environment.functions.getOnOff)?.concept.id;
+        device.functionServices.forEach((services, functionId) => {
+          if (this.metadataService.getFunction(functionId)?.concept.id === conceptId) {
+            controllingServices.push(...services.filter(s => s.service_group_key === measuringService.service_group_key).map(s => ({
+              functionId: functionId,
+              serviceId: s.id
+            })));
+          }
+        });
+      }
+      if (controllingServices.length === 1) {
+        res.push({
+          measuringServiceId: measuringService.id,
+          controllingServiceId: controllingServices[0].serviceId,
+          controllingFunctionId: controllingServices[0].functionId,
+          state: states[i],
+          stateIndex: i,
+        });
+      }
+    });
+    return res.map(r => ({measuringFunctionId: environment.functions.getOnOff, ...r}));
   }
 
-  getOnOffStates(device: CustomDeviceInstance) {
-    return device.functionStates.get(environment.functions.getOnOff);
+  runTask(controllingFunctionId: string, controllingServiceId: string, deviceId: string, measuringFunctionId: string, stateIndex: number, measuringServiceId: string) {
+    const i = this.state.devices.findIndex(d => d.id === deviceId);
+    (this.state.devices[i].functionStates.get(measuringFunctionId) || Array(stateIndex + 1))[stateIndex] = undefined;
+    this.devicesCommandService.runCommands([{
+      function_id: controllingFunctionId,
+      device_id: deviceId,
+      service_id: controllingServiceId
+    }]).pipe(
+      map(() => {
+        return this.devicesCommandService.runCommands([{
+          function_id: measuringFunctionId,
+          device_id: deviceId,
+          service_id: measuringServiceId
+        }]);
+      }),
+      mergeAll(),
+      map(res => {
+        const i = this.state.devices.findIndex(d => d.id === deviceId);
+        if (i === -1) {
+          return;
+        }
+        (this.state.devices[i].functionStates.get(measuringFunctionId) || Array(stateIndex + 1))[stateIndex] = res[0];
+      }),
+    ).subscribe();
+  }
+
+  getOnOffIcon(value: any) {
+    const f = functionConfigs[environment.functions.getOnOff];
+    if (f === undefined || f.getIcon === undefined) {
+      return {icon: '', class: ''};
+    }
+    return f.getIcon(value);
+  }
+
+  trackJSONString(d: any) {
+    return JSON.stringify(d);
   }
 }

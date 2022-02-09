@@ -40,9 +40,10 @@
         <mat-icon matTooltip="Status unknown">question_mark</mat-icon>
       </button>
 
-    <span *ngIf="getOnOffServices(device)?.length === 1 && device.annotations?.connected === true">
-      <button mat-icon-button (click)="toggleOnOff(i)" [disabled]="(getOnOffStates(device)|| [])[0] === undefined">
-        <mat-icon [ngClass]="{'red': !(getOnOffStates(device)|| [])[0], 'green': (getOnOffStates(device)|| [])[0]}">offline_bolt</mat-icon>
+    <span *ngIf="device.annotations?.connected === true">
+      <button mat-icon-button *ngFor="let toggle of getOnOffToggles(device);trackBy:trackJSONString"
+              (click)="runTask(toggle.controllingFunctionId, toggle.controllingServiceId, device.id, toggle.measuringFunctionId, toggle.stateIndex, toggle.measuringServiceId)">
+        <mat-icon [class]="getOnOffIcon(toggle.state).class">{{getOnOffIcon(toggle.state).icon}}</mat-icon>
       </button>
     </span>
   </mat-list-item>
